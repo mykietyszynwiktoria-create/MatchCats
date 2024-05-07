@@ -10,4 +10,5 @@ public class CatsmatchApplication {
 		SpringApplication.run(CatsmatchApplication.class, args);
 	}
 
+
 }
