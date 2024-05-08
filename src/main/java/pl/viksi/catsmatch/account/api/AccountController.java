@@ -2,6 +2,7 @@ package pl.viksi.catsmatch.account.api;
 
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 public class AccountController {
     String danyCiciuch = "Kapec";
@@ -21,7 +22,7 @@ public class AccountController {
 
     @PutMapping("/danyciciuch")
     public void changCiciuchName(@RequestBody ChangCatNameRequest changCatNameRequest){
-
+    danyCiciuch = changCatNameRequest.ciciuchName;
         System.out.println(changCatNameRequest.ciciuchName);
 
     }
