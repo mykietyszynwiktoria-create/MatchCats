@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AccountController {
 
-    String danyCiciuch = "Kapec";
-    String danyCiciuch2 = "Sara";
+    String staryCiciuch= "Kapec";
+    String nowyCiciuch = "Sara";
 
     @GetMapping("/helloword")
     public String helloWord(){
@@ -18,15 +18,14 @@ public class AccountController {
 
     @GetMapping("/danyciciuch")
     public String danyCiciuch(){
-
-        return danyCiciuch + danyCiciuch2;
+            return nowyCiciuch + staryCiciuch;
     }
 
     @PutMapping("/danyciciuch")
     public void changCiciuchName(@RequestBody ChangCatNameRequest changCatNameRequest){
-    danyCiciuch = changCatNameRequest.ciciuchName ;
+    staryCiciuch = nowyCiciuch;
+    nowyCiciuch = changCatNameRequest.ciciuchName;
         System.out.println(changCatNameRequest.ciciuchName);
-
 
     }
 
