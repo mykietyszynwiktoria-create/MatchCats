@@ -8,6 +8,7 @@ public class AccountController {
 
     String staryCiciuch= "Kapec";
     String nowyCiciuch = "Sara";
+    String mediumCiciuch = "Mis";
 
     @GetMapping("/helloword")
     public String helloWord(){
@@ -18,12 +19,13 @@ public class AccountController {
 
     @GetMapping("/danyciciuch")
     public String danyCiciuch(){
-            return nowyCiciuch + staryCiciuch;
+            return nowyCiciuch + mediumCiciuch + staryCiciuch;
     }
 
     @PutMapping("/danyciciuch")
     public void changCiciuchName(@RequestBody ChangCatNameRequest changCatNameRequest){
-    staryCiciuch = nowyCiciuch;
+    staryCiciuch = mediumCiciuch;
+    mediumCiciuch = nowyCiciuch;
     nowyCiciuch = changCatNameRequest.ciciuchName;
         System.out.println(changCatNameRequest.ciciuchName);
 
