@@ -2,6 +2,10 @@ package pl.viksi.catsmatch.account.api;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 
 @RestController
 public class AccountController {
@@ -9,6 +13,7 @@ public class AccountController {
     String staryCiciuch= "Kapec";
     String nowyCiciuch = "Sara";
     String mediumCiciuch = "Mis";
+    List<String> nameCats = new ArrayList<>();
 
     @GetMapping("/helloword")
     public String helloWord(){
@@ -31,4 +36,16 @@ public class AccountController {
 
     }
 
+    @GetMapping("/cats")
+    public List<String> generate(){
+        return nameCats;
+    }
+
+    @PostMapping("/cats")
+    public void addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
+        nameCats = new ArrayList<>();
+        nameCats.add(changCatNameRequest.ciciuchName);
+    }
+
 }
+
