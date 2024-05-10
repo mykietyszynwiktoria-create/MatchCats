@@ -20,5 +20,12 @@ public class AccountController {
     public void addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
         nameCats.add(changCatNameRequest.ciciuchName);
     }
-}
+
+    @DeleteMapping("/cats")
+    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
+        nameCats.remove(changCatNameRequest.ciciuchName);
+        System.out.println(nameCats);
+    }
+
+  }
 
