@@ -9,23 +9,27 @@ import java.util.List;
 @RestController
 public class AccountController {
 
-    List<String> nameCats = new ArrayList<>();
+    List<Cat> nameCats = new ArrayList<Cat>();
+
 
     @GetMapping("/cats")
-    public List<String> generate(){
+    public List<Cat> generate() {
         return nameCats;
     }
 
     @PostMapping("/cats")
     public void addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        nameCats.add(changCatNameRequest.ciciuchName);
+        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace);
+        nameCats.add(newCat);
+
     }
 
     @DeleteMapping("/cats")
     public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
         nameCats.remove(changCatNameRequest.ciciuchName);
         System.out.println(nameCats);
+
     }
 
-  }
+}
 
