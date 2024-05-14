@@ -26,9 +26,13 @@ public class AccountController {
 
     @DeleteMapping("/cats")
     public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        nameCats.remove(changCatNameRequest.ciciuchName);
-        System.out.println(nameCats);
-
+        for (Cat cat : nameCats){
+            if (cat.nameCats.equals(changCatNameRequest.ciciuchName)) {
+                nameCats.remove(cat);
+                System.out.println(nameCats);
+                break;
+            }
+        }
     }
 
 }
