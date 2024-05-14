@@ -22,7 +22,7 @@ public class AccountController {
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,changCatNameRequest.idCat  );
         nameCats.add(newCat);
         int idCat = sequenceNumber;
-        sequenceNumber++;
+        newCat.idCat = sequenceNumber++;
         return idCat;
     }
 
