@@ -4,6 +4,7 @@ public class ChangCatNameRequest {
 
     String ciciuchName;
     String ciciuchRace;
+    int idCat;
 
     ChangCatNameRequest() {
 
@@ -15,6 +16,10 @@ public class ChangCatNameRequest {
 
     public void setCiciuchRace(String ciciuchRace) {
         this.ciciuchRace = ciciuchRace;
+    }
+
+    public void setIdCats(int idCat ) {
+        this.idCat = idCat;
     }
 
 }

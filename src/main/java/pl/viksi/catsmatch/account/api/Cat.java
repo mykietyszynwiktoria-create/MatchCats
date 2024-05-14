@@ -10,12 +10,19 @@ public class Cat {
         return raceCats;
     }
 
+    public int getIdCat() {
+        return idCat;
+    }
+
     String nameCats;
     String raceCats;
+    int idCat;
 
-    Cat(String nameCats, String raceCats) {
+    Cat(String nameCats, String raceCats, int idCat) {
         this.nameCats = nameCats;
         this.raceCats = raceCats;
+        this.idCat = idCat;
+
     }
 
     public void setRaceCats(String raceCats) {
@@ -24,6 +31,10 @@ public class Cat {
 
     public void setNameCats(String nameCats) {
         this.nameCats = nameCats;
+    }
+
+    public void setIdCats(int idCat) {
+        this.idCat = idCat;
     }
 
 

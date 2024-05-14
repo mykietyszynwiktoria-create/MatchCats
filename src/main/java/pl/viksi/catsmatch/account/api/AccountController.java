@@ -10,7 +10,7 @@ import java.util.List;
 public class AccountController {
 
     List<Cat> nameCats = new ArrayList<Cat>();
-
+    int sequenceNumber = 0;
 
     @GetMapping("/cats")
     public List<Cat> generate() {
@@ -18,10 +18,12 @@ public class AccountController {
     }
 
     @PostMapping("/cats")
-    public void addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace);
+    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
+        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,changCatNameRequest.idCat  );
         nameCats.add(newCat);
-
+        int idCat = sequenceNumber;
+        sequenceNumber++;
+        return idCat;
     }
 
     @DeleteMapping("/cats")
