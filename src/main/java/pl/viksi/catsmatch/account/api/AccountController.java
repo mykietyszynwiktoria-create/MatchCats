@@ -19,7 +19,7 @@ public class AccountController {
 
     @PostMapping("/cats")
     public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,changCatNameRequest.idCat  );
+        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace, changCatNameRequest.idCat);
         cats.add(newCat);
         int idCat = sequenceNumber;
         newCat.idCat = sequenceNumber++;
@@ -28,8 +28,8 @@ public class AccountController {
 
     @DeleteMapping("/cats")
     public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        for (Cat cat : cats){
-            if (cat.name.equals(changCatNameRequest.ciciuchName)) {
+        for (Cat cat : cats) {
+            if (cat.idCat == (changCatNameRequest.idCat)) {
                 cats.remove(cat);
                 System.out.println(cats);
                 break;

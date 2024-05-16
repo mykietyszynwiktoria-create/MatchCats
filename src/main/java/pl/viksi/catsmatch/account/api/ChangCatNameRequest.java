@@ -18,7 +18,7 @@ public class ChangCatNameRequest {
         this.ciciuchRace = ciciuchRace;
     }
 
-    public void setIdCats(int idCat ) {
+    public void setIdCat(int idCat ) {
         this.idCat = idCat;
     }
 
