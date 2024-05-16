@@ -38,6 +38,14 @@ public class AccountController {
         }
     }
 
+    @PutMapping("/cats/{id}")
+    public void updateCat(@RequestBody UpdateCat updateCat, @PathVariable int id) {
+        for (Cat cat : cats) {
+            if (cat.idCat == (id)) {
+                cat.health = updateCat.health;
+            }
+        }
+    }
 
 }
 
