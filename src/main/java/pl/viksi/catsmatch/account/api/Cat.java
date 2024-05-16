@@ -2,8 +2,8 @@ package pl.viksi.catsmatch.account.api;
 
 public class Cat {
 
-    public String getNameCats() {
-        return nameCats;
+    public String getName() {
+        return name;
     }
 
     public String getRaceCats() {
@@ -14,12 +14,12 @@ public class Cat {
         return idCat;
     }
 
-    String nameCats;
+    String name;
     String raceCats;
     int idCat;
 
-    Cat(String nameCats, String raceCats, int idCat) {
-        this.nameCats = nameCats;
+    Cat(String name, String raceCats, int idCat) {
+        this.name = name;
         this.raceCats = raceCats;
         this.idCat = idCat;
 
@@ -29,8 +29,8 @@ public class Cat {
         this.raceCats = raceCats;
     }
 
-    public void setNameCats(String nameCats) {
-        this.nameCats = nameCats;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setIdCats(int idCat) {
