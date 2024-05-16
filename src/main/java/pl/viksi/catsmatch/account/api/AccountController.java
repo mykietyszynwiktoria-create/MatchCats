@@ -19,7 +19,8 @@ public class AccountController {
 
     @PostMapping("/cats")
     public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace, changCatNameRequest.idCat);
+        Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
+                changCatNameRequest.idCat, changCatNameRequest.health);
         cats.add(newCat);
         int idCat = sequenceNumber;
         newCat.idCat = sequenceNumber++;
@@ -36,6 +37,7 @@ public class AccountController {
             }
         }
     }
+
 
 }
 

@@ -14,14 +14,21 @@ public class Cat {
         return idCat;
     }
 
+    public Health getHealth() {
+        return health;
+    }
+
+
     String name;
     String raceCats;
     int idCat;
+    Health health;
 
-    Cat(String name, String raceCats, int idCat) {
+    Cat(String name, String raceCats, int idCat, Health health) {
         this.name = name;
         this.raceCats = raceCats;
         this.idCat = idCat;
+        this.health = health;
 
     }
 
@@ -37,5 +44,7 @@ public class Cat {
         this.idCat = idCat;
     }
 
-
+    public void setHealth(Health health) {
+        this.health = health;
+    }
 }

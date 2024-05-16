@@ -5,6 +5,7 @@ public class ChangCatNameRequest {
     String ciciuchName;
     String ciciuchRace;
     int idCat;
+    Health health;
 
     ChangCatNameRequest() {
 
@@ -18,8 +19,11 @@ public class ChangCatNameRequest {
         this.ciciuchRace = ciciuchRace;
     }
 
-    public void setIdCat(int idCat ) {
+    public void setIdCat(int idCat) {
         this.idCat = idCat;
     }
 
+    public void setHealth(Health health) {
+        this.health = health;
+    }
 }
