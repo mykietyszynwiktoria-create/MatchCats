@@ -24,7 +24,7 @@ public class CatRepository {
 
     public void saveCat( Cat cat){
 
-        String InsertPositionSql = "Insert into cat values (?, ?, ?, ?);";
+        String InsertPositionSql = "Insert into cat(catname, catcolor, catID, health) values (?, ?, ?, ?);";
         try (
                 PreparedStatement pstmt = con.prepareStatement(InsertPositionSql)) {
             pstmt.setString(1, cat.name);

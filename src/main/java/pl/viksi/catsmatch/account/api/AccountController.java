@@ -11,10 +11,9 @@ public class AccountController {
 
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
+    CatRepository repository = new CatRepository();
 
     AccountController(){
-        CatRepository repository = new CatRepository();
-
 
     }
 
@@ -30,6 +29,7 @@ public class AccountController {
         cats.add(newCat);
         int idCat = sequenceNumber;
         newCat.idCat = sequenceNumber++;
+        repository.saveCat(newCat);
         return idCat;
     }
 
