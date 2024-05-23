@@ -19,6 +19,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation "org.springframework.boot:spring-boot-starter-web"
+	implementation "mysql:mysql-connector-java:8.0.32"
+	implementation 'org.postgresql:postgresql:42.2.10'
 }
 
 tasks.named('test') {

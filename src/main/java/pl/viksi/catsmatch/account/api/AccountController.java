@@ -12,6 +12,12 @@ public class AccountController {
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
 
+    AccountController(){
+        CatRepository repository = new CatRepository();
+
+
+    }
+
     @GetMapping("/cats")
     public List<Cat> generate() {
         return cats;
