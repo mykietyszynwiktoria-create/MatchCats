@@ -2,10 +2,7 @@ package pl.viksi.catsmatch.account.api;
 
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class CatRepository {
 
@@ -24,14 +21,20 @@ public class CatRepository {
 
     public void saveCat( Cat cat){
 
-        String InsertPositionSql = "Insert into cat(catname, catcolor, catID, health) values (?, ?, ?, ?);";
+        String InsertPositionSql = "Insert into cat(catname, catcolor, catID," +
+                " health) values (?, ?, nextval('serialCat'), ?);";
         try (
                 PreparedStatement pstmt = con.prepareStatement(InsertPositionSql)) {
+            int primkey = 0;
+
             pstmt.setString(1, cat.name);
             pstmt.setString(2,cat.raceCats);
-            pstmt.setInt(3,cat.idCat);
-            pstmt.setString(4, String.valueOf(cat.health));
+            pstmt.setString(3, String.valueOf(cat.health));
             pstmt.execute();
+            {
+                ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                if (generatedKeys.next())
+                    primkey = generatedKeys.getInt(1);}
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
