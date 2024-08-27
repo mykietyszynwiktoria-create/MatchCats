@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+
+  postgres13:
+    container_name: postgres13_container
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    volumes:
+      - ~/apps/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: mysweetcat
+      POSTGRES_DB: mycatmatch
+      POSTGRES_USER: mycatmatch
