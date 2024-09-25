@@ -19,7 +19,7 @@ public class AccountController {
 
     @GetMapping("/cats")
     public List<Cat> generate() {
-        return cats;
+        return repository.getCats();
     }
 
     @PostMapping("/cats")
