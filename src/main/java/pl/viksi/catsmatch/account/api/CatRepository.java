@@ -53,7 +53,16 @@ public class CatRepository {
                 int catId = resultSet.getInt("catId");
                 String catname = resultSet.getString("catname");
                 String catcolor = resultSet.getString("catcolor");
-                Health health = Health.valueOf(resultSet.getString("health"));
+                Health health;
+                if(resultSet.getString("health") == null )
+                {
+                   health = null;
+
+                }
+                else{
+
+                    health = Health.valueOf(resultSet.getString("health"));
+                }
                 Cat cat = new Cat(catname, catcolor, catId, health);
                 catList.add(cat);
 
