@@ -1,7 +1,5 @@
 package pl.viksi.catsmatch.account.api;
 
-import org.springframework.stereotype.Repository;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,4 +70,23 @@ public class CatRepository {
         }
       return catList;
     }
+
+    public void deleteCat(int idCat)
+    {   
+        String query = "DELETE FROM cat WHERE catId = ?";
+                    try (
+             PreparedStatement pstmt = con.prepareStatement(query)) {
+
+            pstmt.setInt(1, idCat);
+            pstmt.execute();
+            {
+
+
+        }
+    } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
 }

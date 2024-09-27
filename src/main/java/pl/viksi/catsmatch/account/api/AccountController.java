@@ -35,13 +35,7 @@ public class AccountController {
 
     @DeleteMapping("/cats")
     public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        for (Cat cat : cats) {
-            if (cat.idCat == (changCatNameRequest.idCat)) {
-                cats.remove(cat);
-                System.out.println(cats);
-                break;
-            }
-        }
+        repository.deleteCat(changCatNameRequest.idCat);
     }
 
     @PutMapping("/cats/{id}")
