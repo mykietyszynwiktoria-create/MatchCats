@@ -98,4 +98,20 @@ public class CatRepository {
 
     }
 
-}
+    public void upDateCat(int id, Health health) {
+
+        String queryUpDate = "UPDATE cat SET health = ? WHERE catid = ?";
+        try (
+                PreparedStatement pstmt = con.prepareStatement(queryUpDate)) {
+
+            pstmt.setString(1, String.valueOf(health));
+            pstmt.setInt(2, id);
+
+            pstmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    }
+
