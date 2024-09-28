@@ -72,17 +72,26 @@ public class CatRepository {
     }
 
     public void deleteCat(int idCat)
-    {   
-        String query = "DELETE FROM cat WHERE catId = ?";
+    {
+        String query1 = "DELETE FROM chat_information WHERE (user1id = ?) OR (user2id = ?)";
+        try (
+                PreparedStatement pstmt = con.prepareStatement(query1)) {
+
+            pstmt.setInt(1, idCat);
+            pstmt.setInt(2, idCat);
+
+            pstmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        String query2 = "DELETE FROM cat WHERE catId = ?";
                     try (
-             PreparedStatement pstmt = con.prepareStatement(query)) {
+             PreparedStatement pstmt = con.prepareStatement(query2)) {
 
             pstmt.setInt(1, idCat);
             pstmt.execute();
-            {
-
-
-        }
     } catch (SQLException e) {
             throw new RuntimeException(e);
         }
