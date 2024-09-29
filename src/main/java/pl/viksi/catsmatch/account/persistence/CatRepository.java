@@ -1,4 +1,7 @@
-package pl.viksi.catsmatch.account.api;
+package pl.viksi.catsmatch.account.persistence;
+
+import pl.viksi.catsmatch.account.domain.Cat;
+import pl.viksi.catsmatch.account.domain.Health;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,7 +11,7 @@ public class CatRepository {
 
     Connection con;
 
-    CatRepository() {
+    public CatRepository() {
 
         try {
             con = DriverManager

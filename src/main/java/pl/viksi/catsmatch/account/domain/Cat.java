@@ -1,4 +1,4 @@
-package pl.viksi.catsmatch.account.api;
+package pl.viksi.catsmatch.account.domain;
 
 public class Cat {
 
@@ -19,12 +19,12 @@ public class Cat {
     }
 
 
-    String name;
-    String raceCats;
-    int idCat;
-    Health health;
+    public String name;
+    public String raceCats;
+    public int idCat;
+    public Health health;
 
-    Cat(String name, String raceCats, int idCat, Health health) {
+    public Cat(String name, String raceCats, int idCat, Health health) {
         this.name = name;
         this.raceCats = raceCats;
         this.idCat = idCat;

@@ -1,5 +1,7 @@
 package pl.viksi.catsmatch.account.api;
 
+import pl.viksi.catsmatch.account.domain.Health;
+
 public class ChangCatNameRequest {
 
     String ciciuchName;

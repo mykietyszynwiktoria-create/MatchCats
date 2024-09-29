@@ -1,6 +1,8 @@
 package pl.viksi.catsmatch.account.api;
 
 import org.springframework.web.bind.annotation.*;
+import pl.viksi.catsmatch.account.domain.Cat;
+import pl.viksi.catsmatch.account.persistence.CatRepository;
 
 import java.util.ArrayList;
 import java.util.List;

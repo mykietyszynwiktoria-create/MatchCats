@@ -1,4 +1,4 @@
-package pl.viksi.catsmatch.account.api;
+package pl.viksi.catsmatch.account.domain;
 
 public enum Health {
     HEALTHY, SICK
