@@ -1,5 +1,7 @@
 package pl.viksi.catsmatch.cat.domain;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
 import pl.viksi.catsmatch.cat.persistence.RelationShipCatsRepository;
 import pl.viksi.catsmatch.user.domain.UserService;
@@ -7,11 +9,14 @@ import pl.viksi.catsmatch.user.domain.UserService;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class MatchCatService {
 
 
     CatRepository repository = new CatRepository();
-    RelationShipCatsRepository relationRepository = new RelationShipCatsRepository();
+
+    @Autowired
+    RelationShipCatsRepository relationRepository;
     UserService userService = new UserService();
 
     public List<Cat> getMatchedAndGetMatches(int id) {

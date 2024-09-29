@@ -1,5 +1,6 @@
 package pl.viksi.catsmatch.cat.api;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.MatchCatService;
@@ -15,7 +16,9 @@ public class CatController {
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
     CatRepository repository = new CatRepository();
-    MatchCatService matchCatService = new MatchCatService();
+
+    @Autowired
+    MatchCatService matchCatService;
 
     CatController(){
 
