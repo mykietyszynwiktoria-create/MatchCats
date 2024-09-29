@@ -34,7 +34,12 @@ public class MatchCatService {
     }
 
     private List<Integer> getIds(List<Cat> matchedCats) {
-        return new ArrayList<>();
+        List<Integer> matchedCatsId = new ArrayList<>();
+        for( Cat matchedCat  : matchedCats){
+            matchedCatsId.add(matchedCat.idCat);
+        }
+
+        return matchedCatsId;
     }
 
 }

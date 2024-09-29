@@ -129,7 +129,20 @@ public class CatRepository {
 
     }
 
-    public Cat getCat(int id) {
+    public Cat getCat(int catId) {
+
+        String queryGetCat = "SELECT *  FROM cat WHERE catId = ?";
+        try (
+                PreparedStatement pstmt = con.prepareStatement(queryGetCat)) {
+
+            pstmt.setInt(1, catId);
+
+            pstmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
         return null;
     }
 
