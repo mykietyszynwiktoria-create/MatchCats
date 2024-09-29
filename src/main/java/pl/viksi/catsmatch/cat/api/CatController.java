@@ -10,14 +10,14 @@ import java.util.List;
 
 
 @RestController
-public class AccountController {
+public class CatController {
 
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
     CatRepository repository = new CatRepository();
     MatchCatService matchCatService = new MatchCatService();
 
-    AccountController(){
+    CatController(){
 
     }
 
