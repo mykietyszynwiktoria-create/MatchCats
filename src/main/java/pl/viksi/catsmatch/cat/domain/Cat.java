@@ -1,7 +1,8 @@
-package pl.viksi.catsmatch.account.domain;
+package pl.viksi.catsmatch.cat.domain;
 
 public class Cat {
 
+    // todo use getters
     public String getName() {
         return name;
     }

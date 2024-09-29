@@ -1,7 +1,7 @@
-package pl.viksi.catsmatch.account.persistence;
+package pl.viksi.catsmatch.cat.persistence;
 
-import pl.viksi.catsmatch.account.domain.Cat;
-import pl.viksi.catsmatch.account.domain.Health;
+import pl.viksi.catsmatch.cat.domain.Cat;
+import pl.viksi.catsmatch.cat.domain.Health;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -44,7 +44,19 @@ public class CatRepository {
         }
     }
 
-    public List<Cat> getCats() {
+    public List<Cat> getMatchedAndGetMatches(int id) {
+
+
+
+
+
+
+
+
+
+
+
+
         List<Cat> catList;
         String query = "SELECT * FROM cat";
         try (Statement stmt = con.createStatement();
@@ -116,5 +128,13 @@ public class CatRepository {
         }
 
     }
+
+    public Cat getCat(int id) {
+        return null;
     }
+
+    public List<Cat> getCats(String raceCats, Health health) {
+        return new ArrayList<>();
+    }
+}
 

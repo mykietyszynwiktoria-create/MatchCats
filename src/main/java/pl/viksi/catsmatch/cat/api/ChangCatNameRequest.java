@@ -1,6 +1,6 @@
-package pl.viksi.catsmatch.account.api;
+package pl.viksi.catsmatch.cat.api;
 
-import pl.viksi.catsmatch.account.domain.Health;
+import pl.viksi.catsmatch.cat.domain.Health;
 
 public class ChangCatNameRequest {
 

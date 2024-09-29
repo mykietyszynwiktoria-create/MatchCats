@@ -1,8 +1,9 @@
-package pl.viksi.catsmatch.account.api;
+package pl.viksi.catsmatch.cat.api;
 
 import org.springframework.web.bind.annotation.*;
-import pl.viksi.catsmatch.account.domain.Cat;
-import pl.viksi.catsmatch.account.persistence.CatRepository;
+import pl.viksi.catsmatch.cat.domain.Cat;
+import pl.viksi.catsmatch.cat.domain.MatchCatService;
+import pl.viksi.catsmatch.cat.persistence.CatRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +15,15 @@ public class AccountController {
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
     CatRepository repository = new CatRepository();
+    MatchCatService matchCatService = new MatchCatService();
 
     AccountController(){
 
     }
 
-    @GetMapping("/cats")
-    public List<Cat> generate() {
-        return repository.getCats();
+    @PostMapping("/cats/{id}/matches")
+    public List<Cat> getMatches(@PathVariable int id) {
+        return matchCatService.getMatchedAndGetMatches(id);
     }
 
     @PostMapping("/cats")
