@@ -136,12 +136,16 @@ public class CatRepository {
     public List<Cat> getCats(String raceCats, Health health) {
         List<Cat> catsList = new ArrayList<>();
         String queryGetCats = "SELECT *  FROM cat WHERE (raceCats = ?) AND (health = ?)";
-        try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);
-             ResultSet resultSet = pstmt.executeQuery(queryGetCats)) {
+        try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
+
+            pstmt.setString(1, raceCats);
+            pstmt.setString(2, String.valueOf(health));
+
+            ResultSet resultSet = pstmt.executeQuery(queryGetCats);
             while (resultSet.next()) {
                 int catId = resultSet.getInt("catId");
                 String catname = resultSet.getString("catname");
-                raceCats = resultSet.getString("catcolor");
+                String catcolor = resultSet.getString("catcolor");
                 Health healthFromDb;
                 if (resultSet.getString("health") == null) {
                     healthFromDb = null;
@@ -150,14 +154,14 @@ public class CatRepository {
 
                     healthFromDb = Health.valueOf(resultSet.getString("health"));
                 }
-                Cat cat = new Cat(catname, raceCats, catId, healthFromDb);
+                Cat cat = new Cat(catname, catcolor, catId, healthFromDb);
                 catsList.add(cat);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        return new ArrayList<>();
+        return catsList;
 
     }
 }
