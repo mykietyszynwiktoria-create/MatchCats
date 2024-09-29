@@ -47,32 +47,20 @@ public class CatRepository {
     public List<Cat> getMatchedAndGetMatches(int id) {
 
 
-
-
-
-
-
-
-
-
-
-
         List<Cat> catList;
         String query = "SELECT * FROM cat";
         try (Statement stmt = con.createStatement();
              ResultSet resultSet = stmt.executeQuery(query)) {
-             catList = new ArrayList<>();
+            catList = new ArrayList<>();
             while (resultSet.next()) {
                 int catId = resultSet.getInt("catId");
                 String catname = resultSet.getString("catname");
                 String catcolor = resultSet.getString("catcolor");
                 Health health;
-                if(resultSet.getString("health") == null )
-                {
-                   health = null;
+                if (resultSet.getString("health") == null) {
+                    health = null;
 
-                }
-                else{
+                } else {
 
                     health = Health.valueOf(resultSet.getString("health"));
                 }
@@ -83,11 +71,10 @@ public class CatRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-      return catList;
+        return catList;
     }
 
-    public void deleteCat(int idCat)
-    {
+    public void deleteCat(int idCat) {
         String query1 = "DELETE FROM chat_information WHERE (user1id = ?) OR (user2id = ?)";
         try (
                 PreparedStatement pstmt = con.prepareStatement(query1)) {
@@ -102,12 +89,12 @@ public class CatRepository {
 
 
         String query2 = "DELETE FROM cat WHERE catId = ?";
-                    try (
-             PreparedStatement pstmt = con.prepareStatement(query2)) {
+        try (
+                PreparedStatement pstmt = con.prepareStatement(query2)) {
 
             pstmt.setInt(1, idCat);
             pstmt.execute();
-    } catch (SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
@@ -147,7 +134,31 @@ public class CatRepository {
     }
 
     public List<Cat> getCats(String raceCats, Health health) {
+        List<Cat> catsList = new ArrayList<>();
+        String queryGetCats = "SELECT *  FROM cat WHERE (raceCats = ?) AND (health = ?)";
+        try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);
+             ResultSet resultSet = pstmt.executeQuery(queryGetCats)) {
+            while (resultSet.next()) {
+                int catId = resultSet.getInt("catId");
+                String catname = resultSet.getString("catname");
+                raceCats = resultSet.getString("catcolor");
+                Health healthFromDb;
+                if (resultSet.getString("health") == null) {
+                    healthFromDb = null;
+
+                } else {
+
+                    healthFromDb = Health.valueOf(resultSet.getString("health"));
+                }
+                Cat cat = new Cat(catname, raceCats, catId, healthFromDb);
+                catsList.add(cat);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         return new ArrayList<>();
+
     }
 }
 
