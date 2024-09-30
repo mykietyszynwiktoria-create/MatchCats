@@ -76,8 +76,11 @@ select * from relationshipcats;
 ALTER TABLE cat
 ADD health varchar(20)
 
-DROP SEQUENCE serialCat
-
 create SEQUENCE serialCat
 START WITH 1000
-INCREMENT BY 1
+INCREMENT BY 1;
+
+create SEQUENCE relationshipcats_seq
+START WITH 1000
+INCREMENT BY 1;
+

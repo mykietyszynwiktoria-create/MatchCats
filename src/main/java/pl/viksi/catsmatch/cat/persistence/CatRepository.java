@@ -1,5 +1,7 @@
 package pl.viksi.catsmatch.cat.persistence;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.Health;
 
@@ -9,6 +11,7 @@ import java.util.List;
 
 public class CatRepository {
 
+    private static final Log log = LogFactory.getLog(CatRepository.class);
     Connection con;
 
     public CatRepository() {
@@ -150,6 +153,7 @@ public class CatRepository {
     }
 
     public List<Cat> getCats(String raceCats, Health health) {
+        log.info("getCats: raceCats " + raceCats + " health " + health);
         List<Cat> catsList = new ArrayList<>();
         String queryGetCats = "SELECT *  FROM cat WHERE (catcolor = ?) AND (health = ?)";
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
