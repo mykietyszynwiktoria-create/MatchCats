@@ -33,6 +33,11 @@ public class Cat {
 
     }
 
+    @Override
+    public String toString() {
+        return String.format("Cat with id = %d and with name = %s", idCat, name);
+    }
+
     public void setRaceCats(String raceCats) {
         this.raceCats = raceCats;
     }

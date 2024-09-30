@@ -1,5 +1,7 @@
 package pl.viksi.catsmatch.cat.domain;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
@@ -13,6 +15,7 @@ import java.util.List;
 public class MatchCatService {
 
 
+    private static final Log log = LogFactory.getLog(MatchCatService.class);
     CatRepository repository = new CatRepository();
 
     @Autowired
@@ -21,8 +24,10 @@ public class MatchCatService {
 
     public List<Cat> getMatchedAndGetMatches(int id) {
 
-
+        log.info("Getting matchedCats with catId: " + id);
         Cat cat = repository.getCat(id);
+
+        log.info("cat returned: " + cat);
         List<Cat> matchedCats = repository.getCats(cat.raceCats, cat.health);
 
         List<Integer> matchedCatsIds = getIds(matchedCats);

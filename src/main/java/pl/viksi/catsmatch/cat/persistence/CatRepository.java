@@ -124,13 +124,29 @@ public class CatRepository {
 
             pstmt.setInt(1, catId);
 
-            pstmt.execute();
+            ResultSet resultSet = pstmt.executeQuery();
+            resultSet.next();
+            catId = resultSet.getInt("catId");
+            String catname = resultSet.getString("catname");
+            String catcolor = resultSet.getString("catcolor");
+            Health health;
+            if (resultSet.getString("health") == null) {
+                health = null;
+
+            } else {
+
+                health = Health.valueOf(resultSet.getString("health"));
+            }
+
+            Cat cat = new Cat(catname, catcolor, catId, health);
+
+            return cat;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
 
-        return null;
+
     }
 
     public List<Cat> getCats(String raceCats, Health health) {
