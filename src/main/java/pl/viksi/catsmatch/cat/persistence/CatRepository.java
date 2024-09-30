@@ -151,13 +151,13 @@ public class CatRepository {
 
     public List<Cat> getCats(String raceCats, Health health) {
         List<Cat> catsList = new ArrayList<>();
-        String queryGetCats = "SELECT *  FROM cat WHERE (raceCats = ?) AND (health = ?)";
+        String queryGetCats = "SELECT *  FROM cat WHERE (catcolor = ?) AND (health = ?)";
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
 
             pstmt.setString(1, raceCats);
             pstmt.setString(2, String.valueOf(health));
 
-            ResultSet resultSet = pstmt.executeQuery(queryGetCats);
+            ResultSet resultSet = pstmt.executeQuery();
             while (resultSet.next()) {
                 int catId = resultSet.getInt("catId");
                 String catname = resultSet.getString("catname");

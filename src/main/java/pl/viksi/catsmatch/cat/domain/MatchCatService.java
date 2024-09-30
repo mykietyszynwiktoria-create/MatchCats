@@ -30,6 +30,7 @@ public class MatchCatService {
         log.info("cat returned: " + cat);
         List<Cat> matchedCats = repository.getCats(cat.raceCats, cat.health);
 
+        log.info("matchedCats" + matchedCats);
         List<Integer> matchedCatsIds = getIds(matchedCats);
         for(int matchedCatId : matchedCatsIds) {
             relationRepository.createRelationship(id,matchedCatId);
