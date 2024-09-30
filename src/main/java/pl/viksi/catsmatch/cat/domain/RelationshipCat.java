@@ -17,4 +17,8 @@ public class RelationshipCat {
     int secondCatId;
     int possibleChatId;
 
+    public RelationshipCat(int firstCatId, int secondCatId) {
+        this.firstCatId = firstCatId;
+        this.secondCatId = secondCatId;
+    }
 }

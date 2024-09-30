@@ -1,8 +1,8 @@
 package pl.viksi.catsmatch.cat.persistence;
 
-import org.hibernate.annotations.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pl.viksi.catsmatch.cat.domain.RelationshipCat;
 
 @Component
 public class RelationShipCatsRepository {
@@ -11,6 +11,10 @@ public class RelationShipCatsRepository {
     JpaRelationshipCatRepository jpaRelationshipCatRepository;
 
     public void createRelationship(int id, int matchedCatId) {
+        var relationship = new RelationshipCat(id, matchedCatId);
+
+        jpaRelationshipCatRepository.save(relationship);
+
 
     }
 }
