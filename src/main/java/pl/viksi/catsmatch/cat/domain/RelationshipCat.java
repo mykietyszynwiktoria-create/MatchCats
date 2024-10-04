@@ -1,14 +1,15 @@
 package pl.viksi.catsmatch.cat.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "relationshipcats")
 public class RelationshipCat {
 
+    @GenericGenerator(name = "generator", strategy = "increment")
     @Id
-    @SequenceGenerator(name = "stu_seq", sequenceName = "relationshipcats_seq", allocationSize = 10)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "stu_seq")
+    @GeneratedValue( generator = "generator")
     @Column(name = "relationshipCatsId")
     public Integer relationshipCatsId;
 
