@@ -10,8 +10,8 @@ public class RelationshipCat {
     @GenericGenerator(name = "generator", strategy = "increment")
     @Id
     @GeneratedValue( generator = "generator")
-    @Column(name = "relationshipCatsId")
-    public Integer relationshipCatsId;
+    @Column(name = "relationshipcatsid")
+    public Integer relationshipcatsid;
 
     @Column(name = "firstcatid")
     int firstCatId;
@@ -19,8 +19,7 @@ public class RelationshipCat {
     @Column(name = "secondcatid")
     int secondCatId;
 
-    @Column(name = "possiblechatid")
-    int possibleChatId;
+
 
     public RelationshipCat(int firstCatId, int secondCatId) {
         this.firstCatId = firstCatId;

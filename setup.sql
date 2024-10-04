@@ -84,3 +84,6 @@ create SEQUENCE relationshipcats_seq
 START WITH 1000
 INCREMENT BY 1;
 
+ALTER TABLE relationshipcats
+DROP COLUMN possiblechatid;
+
