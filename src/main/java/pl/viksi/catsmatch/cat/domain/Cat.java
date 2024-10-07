@@ -25,6 +25,7 @@ public class Cat {
     public int idCat;
     public Health health;
 
+
     public Cat(String name, String raceCats, int idCat, Health health) {
         this.name = name;
         this.raceCats = raceCats;

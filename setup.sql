@@ -87,3 +87,6 @@ INCREMENT BY 1;
 ALTER TABLE relationshipcats
 DROP COLUMN possiblechatid;
 
+ALTER TABLE cat
+ADD sex VARCHAR(100);
+
