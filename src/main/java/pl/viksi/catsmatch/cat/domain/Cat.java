@@ -30,10 +30,6 @@ public class Cat {
 
 
     public Cat(String name, String raceCats, int idCat, Health health) {
-        this.name = name;
-        this.raceCats = raceCats;
-        this.idCat = idCat;
-        this.health = health;
 
     }
 

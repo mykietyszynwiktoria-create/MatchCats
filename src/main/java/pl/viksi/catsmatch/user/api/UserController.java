@@ -4,11 +4,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.user.domain.Chat;
 import pl.viksi.catsmatch.user.domain.CreatUser;
 import pl.viksi.catsmatch.user.domain.Message;
-import pl.viksi.catsmatch.user.persistence.UserRepository;
 
 import java.util.List;
 
@@ -19,8 +17,8 @@ public class UserController {
 
     @PostMapping("/users")
     public int addUser(@RequestBody CreatUser creatUser) {
-        Cat newUser = new User(CreatUser.creatUser);
-        Cat.add(newUser);
+        User newUser = new User(CreatUser.creatUser);
+        User.add(newUser);
         repository.creatUser(newUser);
         return  ;
     }
