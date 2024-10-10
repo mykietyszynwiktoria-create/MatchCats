@@ -1,5 +1,5 @@
 package pl.viksi.catsmatch.user.domain;
 
-public enum Chat {
-    CHAT,
+public class Chat {
+    String text;
 }

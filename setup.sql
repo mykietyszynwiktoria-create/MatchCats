@@ -35,23 +35,6 @@ insert into cat values (4, 'Celina', 'niebieski', 3);
 insert into cat values (5, 'Celina', 'niebieski', 4);
 insert into cat values (6, 'Pysio', 'rudy', 2);
 
-create table chat_information (
-        chat_informationID int primary key,
-        chat_cats varchar(50) not null,
-        user1ID int not null,
-        user2ID int not null,
-
-
-        CONSTRAINT fk_user1ID_cat
-   FOREIGN KEY(user1ID)
-   REFERENCES cat(catID),
-   CONSTRAINT fk_user2ID_cat
-   FOREIGN KEY(user2ID)
-   REFERENCES cat(catID)
-        );
-insert into chat_information values (1,'Para', 3, 1);
-insert into chat_information values (1,'Para', 4, 5);
-
 create table relationshipcats (
         relationshipcatsID int primary key,
         firstcatID int ,
@@ -89,4 +72,35 @@ DROP COLUMN possiblechatid;
 
 ALTER TABLE cat
 ADD sex VARCHAR(100);
+
+create schema users;
+
+CREATE TABLE users.users (
+
+        id int primary key,
+        nick_login  VARCHAR (20),
+        login_password  VARCHAR (20),
+        firstname VARCHAR (20),
+        surname VARCHAR (20),
+        email VARCHAR (20)
+
+);
+
+DROP TABLE chat_information;
+
+create table users.chats (
+
+        chat_informationID int primary key,
+        chat_cats varchar(50) not null,
+        user1ID int not null,
+        user2ID int not null,
+
+        CONSTRAINT fk_user1ID_users
+   FOREIGN KEY(user1ID)
+   REFERENCES users.users(id),
+     CONSTRAINT fk_user2ID_users
+   FOREIGN KEY(user2ID)
+   REFERENCES users.users(id)
+
+   );
 

@@ -2,6 +2,9 @@ package pl.viksi.catsmatch.cat.domain;
 
 public class Cat {
 
+    public static void add(Cat newUser) {
+    }
+
     // todo use getters
     public String getName() {
         return name;
