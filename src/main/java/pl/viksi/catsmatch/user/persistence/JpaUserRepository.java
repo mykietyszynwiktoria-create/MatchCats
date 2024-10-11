@@ -1,7 +1,7 @@
 package pl.viksi.catsmatch.user.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pl.viksi.catsmatch.user.domain.User;
+import pl.viksi.catsmatch.user.domain.PrivateUser;
 
-public interface JpaUserRepository extends JpaRepository<User, Integer> {
+public interface JpaUserRepository extends JpaRepository<PrivateUser, Integer> {
 }

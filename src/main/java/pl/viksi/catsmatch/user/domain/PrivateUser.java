@@ -4,8 +4,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "users.users")
-
-    public class User {
+public class PrivateUser {
 
     @GenericGenerator(name = "generator", strategy = "increment")
     @Id
@@ -23,7 +22,7 @@ import org.hibernate.annotations.GenericGenerator;
     @Column(name = "email")
     public String email;
 
-    public User(int id, String nick_login, String login_password, String firstname, String surname, String email) {
+    public PrivateUser(int id, String nick_login, String login_password, String firstname, String surname, String email) {
     this.id = id;
     this.nick_login = nick_login;
     this.login_password = login_password;
