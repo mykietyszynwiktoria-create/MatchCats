@@ -73,9 +73,7 @@ DROP COLUMN possiblechatid;
 ALTER TABLE cat
 ADD sex VARCHAR(100);
 
-create schema users;
-
-CREATE TABLE users.users (
+CREATE TABLE users_users (
 
         id int primary key,
         nick_login  VARCHAR (20),
@@ -88,7 +86,7 @@ CREATE TABLE users.users (
 
 DROP TABLE chat_information;
 
-create table users.chats (
+create table users_chats (
 
         chat_informationID int primary key,
         chat_cats varchar(50) not null,
@@ -97,10 +95,10 @@ create table users.chats (
 
         CONSTRAINT fk_user1ID_users
    FOREIGN KEY(user1ID)
-   REFERENCES users.users(id),
+   REFERENCES users_users(id),
      CONSTRAINT fk_user2ID_users
    FOREIGN KEY(user2ID)
-   REFERENCES users.users(id)
+   REFERENCES users_users(id)
 
    );
 

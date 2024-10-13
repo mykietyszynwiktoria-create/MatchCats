@@ -9,10 +9,9 @@ public class UsersRepository {
     @Autowired
     JpaUserRepository jpaUserRepository;
 
-    public void createUser(PrivateUser user) {
-        var saveduser = jpaUserRepository.save(user);
+    public PrivateUser saveUser(PrivateUser user) {
+         return jpaUserRepository.save(user);
 
-        ;
 
     }
 }

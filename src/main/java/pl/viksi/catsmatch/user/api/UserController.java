@@ -1,26 +1,28 @@
 package pl.viksi.catsmatch.user.api;
-import org.apache.catalina.User;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import pl.viksi.catsmatch.user.domain.Chat;
 import pl.viksi.catsmatch.user.domain.CreatUser;
 import pl.viksi.catsmatch.user.domain.Message;
+import pl.viksi.catsmatch.user.domain.PrivateUser;
+import pl.viksi.catsmatch.user.persistence.UsersRepository;
 
 import java.util.List;
 
+@RestController
 public class UserController {
     Chat chats;
 
-    UserRepository repository = new UserRepository();
+    @Autowired
+    UsersRepository repository = new UsersRepository();
 
     @PostMapping("/users")
-    public int addUser(@RequestBody CreatUser creatUser) {
-        User newUser = new User(CreatUser.creatUser);
-        User.add(newUser);
-        repository.creatUser(newUser);
-        return  ;
+    public PrivateUser addUser(@RequestBody CreatUser creatUser) {
+        PrivateUser newUser = new PrivateUser(creatUser.nick_login, creatUser.login_password, creatUser.firstname,
+                creatUser.surname, creatUser.email);
+        return repository.saveUser(newUser);
     }
 
 
