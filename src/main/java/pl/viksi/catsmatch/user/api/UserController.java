@@ -32,7 +32,7 @@ public class UserController {
 
     @GetMapping("/users/{userId}/chats")
     public List<Chat> chats (@PathVariable int userId){
-                return repositoryChat.getChats(userId + userId);
+                return repositoryChat.getChats(userId);
     }
 
     @PostMapping("/users/{iduser}/chats/{idchat}/chat")

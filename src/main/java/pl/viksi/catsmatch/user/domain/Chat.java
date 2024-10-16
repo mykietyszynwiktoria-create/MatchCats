@@ -18,6 +18,10 @@ public class Chat {
     @Column(name = "chat_cats")
     public String text;
 
+    public Chat(){
+
+    }
+
     public Chat(int id, int user1ID, int user2ID, String text) {
         this.id = id;
         this.user1ID = user1ID;
