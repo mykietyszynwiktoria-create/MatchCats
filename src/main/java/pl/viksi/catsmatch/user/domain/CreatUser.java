@@ -1,6 +1,6 @@
 package pl.viksi.catsmatch.user.domain;
 
-public class CreatUser {
+public class  CreatUser {
     public static Object creatUser;
     public int userId;
     public String nick_login;
