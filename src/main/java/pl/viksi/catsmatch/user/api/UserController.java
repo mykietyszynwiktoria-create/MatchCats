@@ -14,13 +14,13 @@ import java.util.List;
 
 @RestController
 public class UserController {
-    Chat chats;
 
     @Autowired
     UsersRepository repository = new UsersRepository();
 
     @Autowired
     ChatRepository repositoryChat = new ChatRepository();
+
 
     @PostMapping("/users")
     public PrivateUser addUser(@RequestBody CreatUser creatUser) {
@@ -35,9 +35,13 @@ public class UserController {
                 return repositoryChat.getChats(userId);
     }
 
-    @PostMapping("/users/{iduser}/chats/{idchat}/chat")
-    public Chat addChat (@RequestBody Message message, @PathVariable int iduser, @PathVariable int idchat){
-        return null;
+    @PostMapping("/users/chats/{idchat}")
+    public Chat addMessageToChat(@RequestBody Message message, @PathVariable int idchat){
+
+        Chat  = repositoryChat.findChat(idchat, String.valueOf(message))
+                + repositoryChat.findChat(idchat, String.valueOf(message));
+
+        return null; //repositoryChat.saveChat(message);
     }
 
 }

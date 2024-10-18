@@ -9,4 +9,6 @@ public interface JpaChatRepository extends JpaRepository<Chat, Integer> {
 
     List<Chat> findByUser1IDOrUser2ID(int user1ID, int user2ID);
 
+
+    List<Chat> findById(int idchat);
 }

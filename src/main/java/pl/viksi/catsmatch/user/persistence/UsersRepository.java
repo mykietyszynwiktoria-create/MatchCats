@@ -10,8 +10,8 @@ public class UsersRepository {
     JpaUserRepository jpaUserRepository;
 
     public PrivateUser saveUser(PrivateUser user) {
-         return jpaUserRepository.save(user);
-
+        return jpaUserRepository.save(user);
 
     }
+
 }

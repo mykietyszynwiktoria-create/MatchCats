@@ -29,4 +29,10 @@ public class Chat {
         this.text= text;
 
     }
+
+    public void addMessage(Message message){
+
+
+    }
+
 }
