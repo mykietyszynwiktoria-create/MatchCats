@@ -32,6 +32,7 @@ public class Chat {
 
     public void addMessage(Message message){
 
+     this.text = message.text;
 
     }
 

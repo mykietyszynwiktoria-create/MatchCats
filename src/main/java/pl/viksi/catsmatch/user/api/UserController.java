@@ -42,8 +42,9 @@ public class UserController {
         Chat chat = repositoryChat.findChat(idchat);
         log.info("chat" + idchat);
 
+         chat.addMessage(message);
 
-        return null;
+        return repositoryChat.saveChat(chat);
     }
 
 }
