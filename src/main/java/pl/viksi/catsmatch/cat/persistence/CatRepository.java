@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CatRepository {
 
-    private static final Log log = LogFactory.getLog(CatRepository.class);
+    public static final Log log = LogFactory.getLog(CatRepository.class);
     Connection con;
 
     public CatRepository() {

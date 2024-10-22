@@ -1,5 +1,4 @@
 package pl.viksi.catsmatch.user.api;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +10,8 @@ import pl.viksi.catsmatch.user.persistence.ChatRepository;
 import pl.viksi.catsmatch.user.persistence.UsersRepository;
 
 import java.util.List;
+
+import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 
 @RestController
 public class UserController {
@@ -38,10 +39,11 @@ public class UserController {
     @PostMapping("/users/chats/{idchat}")
     public Chat addMessageToChat(@RequestBody Message message, @PathVariable int idchat){
 
-        Chat  = repositoryChat.findChat(idchat, String.valueOf(message))
-                + repositoryChat.findChat(idchat, String.valueOf(message));
+        Chat chat = repositoryChat.findChat(idchat);
+        log.info("chat" + idchat);
 
-        return null; //repositoryChat.saveChat(message);
+
+        return null;
     }
 
 }
