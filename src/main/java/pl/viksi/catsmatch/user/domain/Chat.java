@@ -45,7 +45,7 @@ public class Chat {
 
      log.info("check message" + text);
 
-     this.text = message.text;
+     this.text = this.text + " " + message.text;
 
     }
 
