@@ -22,14 +22,16 @@ public class Cat {
         return health;
     }
 
+    public int getOwnerid(){return ownerid;}
+
 
     public String name;
     public String raceCats;
     public int idCat;
     public Health health;
+    public int ownerid;
 
-
-    public Cat(String name, String raceCats, int idCat, Health health) {
+    public Cat(String name, String raceCats, int idCat, Health health, int ownerid) {
 
     }
 
@@ -53,4 +55,7 @@ public class Cat {
     public void setHealth(Health health) {
         this.health = health;
     }
+
+    public void setOwnerid(int ownerid) { this.ownerid = ownerid;}
+
 }

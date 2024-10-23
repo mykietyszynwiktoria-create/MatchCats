@@ -29,10 +29,10 @@ public class CatController {
         return matchCatService.getMatchedAndGetMatches(id);
     }
 
-    @PostMapping("/cats")
-    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
+    @PostMapping("/owners/{ownerid}/cats")
+    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) {
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
-                changCatNameRequest.idCat, changCatNameRequest.health);
+                changCatNameRequest.idCat, changCatNameRequest.health, ownerid);
         cats.add(newCat);
         int idCat = sequenceNumber;
         newCat.idCat = sequenceNumber++;

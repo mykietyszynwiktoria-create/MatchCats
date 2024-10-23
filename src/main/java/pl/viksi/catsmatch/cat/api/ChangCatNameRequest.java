@@ -9,6 +9,7 @@ public class ChangCatNameRequest {
     int idCat;
     Health health;
 
+
     ChangCatNameRequest() {
 
     }
@@ -28,4 +29,5 @@ public class ChangCatNameRequest {
     public void setHealth(Health health) {
         this.health = health;
     }
-}
+
+    }

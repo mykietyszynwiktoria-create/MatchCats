@@ -67,7 +67,8 @@ public class CatRepository {
 
                     health = Health.valueOf(resultSet.getString("health"));
                 }
-                Cat cat = new Cat(catname, catcolor, catId, health);
+                int ownerid = resultSet.getInt("ownerid");
+                Cat cat = new Cat(catname, catcolor, catId, health, ownerid);
                 catList.add(cat);
 
             }
@@ -140,8 +141,8 @@ public class CatRepository {
 
                 health = Health.valueOf(resultSet.getString("health"));
             }
-
-            Cat cat = new Cat(catname, catcolor, catId, health);
+            int ownerid = resultSet.getInt("ownerid");
+            Cat cat = new Cat(catname, catcolor, catId, health, ownerid);
 
             return cat;
         } catch (SQLException e) {
@@ -174,7 +175,8 @@ public class CatRepository {
 
                     healthFromDb = Health.valueOf(resultSet.getString("health"));
                 }
-                Cat cat = new Cat(catname, catcolor, catId, healthFromDb);
+                int ownerid = resultSet.getInt("ownerid");
+                Cat cat = new Cat(catname, catcolor, catId, healthFromDb, ownerid);
                 catsList.add(cat);
             }
         } catch (SQLException e) {

@@ -35,7 +35,7 @@ public class MatchCatService {
         for(int matchedCatId : matchedCatsIds) {
             relationRepository.createRelationship(id,matchedCatId);
         }
-
+// dodaj liste tutej
         userService.informCatsMatched(cat.idCat, matchedCatsIds);
 
 
@@ -44,6 +44,7 @@ public class MatchCatService {
         return matchedCats;
     }
 
+//dodaj get userid
     private List<Integer> getIds(List<Cat> matchedCats) {
         List<Integer> matchedCatsId = new ArrayList<>();
         for( Cat matchedCat  : matchedCats){
