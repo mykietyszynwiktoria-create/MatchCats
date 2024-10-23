@@ -27,19 +27,29 @@ public class UserController {
     public PrivateUser addUser(@RequestBody CreatUser creatUser) {
         PrivateUser newUser = new PrivateUser(creatUser.nick_login, creatUser.login_password, creatUser.firstname,
                 creatUser.surname, creatUser.email);
+
+        log.info("Check new User" + newUser);
+
         return repository.saveUser(newUser);
     }
 
 
     @GetMapping("/users/{userId}/chats")
     public List<Chat> chats (@PathVariable int userId){
+
+                log.info("check chats " + userId);
+
                 return repositoryChat.getChats(userId);
+
     }
 
     @PostMapping("/users/chats/{idchat}")
     public Chat addMessageToChat(@RequestBody Message message, @PathVariable int idchat){
 
+        log.info("Check message and idchat" + message + idchat);
+
         Chat chat = repositoryChat.findChat(idchat);
+
         log.info("chat" + idchat);
 
          chat.addMessage(message);
