@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.MatchCatService;
+import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
+import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,8 @@ public class CatController {
     List<Cat> cats = new ArrayList<Cat>();
     int sequenceNumber = 0;
     CatRepository repository = new CatRepository();
+
+    OwnerRepository repositoryOwner = new OwnerRepository();
 
     @Autowired
     MatchCatService matchCatService;
@@ -48,6 +52,12 @@ public class CatController {
     @PutMapping("/cats/{id}")
     public void updateCat(@RequestBody UpdateCat updateCat, @PathVariable int id) {
         repository.upDateCat(id, updateCat.health);
+    }
+
+    @PutMapping("/owners/{userid}")
+    public List<Owner> addOwner(@RequestBody AddOwner addOwner, @PathVariable int userid){
+        //repositoryOwner.AddOwner(addOwner.name1, userid);
+        return null;
     }
 
 }
