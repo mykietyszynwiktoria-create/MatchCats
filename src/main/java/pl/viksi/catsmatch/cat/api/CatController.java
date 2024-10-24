@@ -11,12 +11,12 @@ import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
+
 
 @RestController
 public class CatController {
 
-    List<Cat> cats = new ArrayList<Cat>();
-    int sequenceNumber = 0;
     CatRepository repository = new CatRepository();
 
     OwnerRepository repositoryOwner = new OwnerRepository();
@@ -35,18 +35,25 @@ public class CatController {
 
     @PostMapping("/owners/{ownerid}/cats")
     public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) {
+
+        log.info("Starting addCat with changCatNameRequest" + changCatNameRequest);
+
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
-                changCatNameRequest.idCat, changCatNameRequest.health, ownerid);
-        cats.add(newCat);
-        int idCat = sequenceNumber;
-        newCat.idCat = sequenceNumber++;
+                changCatNameRequest.health, ownerid);
+
+        log.info("Adding new Cat to cat" + newCat);
+
+        newCat.idCat = 0;
+
+
         repository.saveCat(newCat);
-        return idCat;
+
+        return newCat.idCat;
     }
 
-    @DeleteMapping("/cats")
-    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest) {
-        repository.deleteCat(changCatNameRequest.idCat);
+    @DeleteMapping("/cats/{id}")
+    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest,@PathVariable int catid) {
+        repository.deleteCat(catid);
     }
 
     @PutMapping("/cats/{id}")

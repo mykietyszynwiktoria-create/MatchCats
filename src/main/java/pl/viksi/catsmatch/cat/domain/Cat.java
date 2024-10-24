@@ -31,10 +31,25 @@ public class Cat {
     public Health health;
     public int ownerid;
 
-    public Cat(String name, String raceCats, int idCat, Health health, int ownerid) {
+    public Cat(String name, String raceCats, Health health, int ownerid) {
+
+        this.name = name;
+
+        this.raceCats = raceCats;
+
+        this.health = health;
+
+        this.ownerid = ownerid;
 
     }
 
+    public Cat(int idCat, String name, String raceCats, Health health, int ownerid) {
+
+        this(name, raceCats, health, ownerid);
+
+        this.idCat = idCat;
+
+    }
     @Override
     public String toString() {
         return String.format("Cat with id = %d and with name = %s", idCat, name);

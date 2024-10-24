@@ -6,12 +6,15 @@ public class ChangCatNameRequest {
 
     String ciciuchName;
     String ciciuchRace;
-    int idCat;
     Health health;
 
 
     ChangCatNameRequest() {
 
+    }
+    @Override
+    public String toString() {
+        return String.format("Chat text = %s and text =%s ",  ciciuchName, ciciuchRace);
     }
 
     public void setCiciuchName(String ciciuchName) {
@@ -22,9 +25,6 @@ public class ChangCatNameRequest {
         this.ciciuchRace = ciciuchRace;
     }
 
-    public void setIdCat(int idCat) {
-        this.idCat = idCat;
-    }
 
     public void setHealth(Health health) {
         this.health = health;
