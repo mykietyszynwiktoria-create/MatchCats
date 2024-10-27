@@ -8,6 +8,7 @@ import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
 import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,12 +44,9 @@ public class CatController {
 
         log.info("Adding new Cat to cat" + newCat);
 
-        newCat.idCat = 0;
+        int primkey = repository.saveCat(newCat);
 
-
-        repository.saveCat(newCat);
-
-        return newCat.idCat;
+        return primkey;
     }
 
     @DeleteMapping("/cats/{id}")

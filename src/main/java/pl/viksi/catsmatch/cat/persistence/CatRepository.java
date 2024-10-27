@@ -2,6 +2,8 @@ package pl.viksi.catsmatch.cat.persistence;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.Health;
 
@@ -25,13 +27,14 @@ public class CatRepository {
 
     }
 
-    public void saveCat(Cat cat) {
+    public int saveCat(Cat cat) {
 
         String InsertPositionSql = "Insert into cat(catname, catcolor, catID," +
                 " health) values (?, ?, nextval('serialCat'), ?);";
+        int primkey;
         try (
-                PreparedStatement pstmt = con.prepareStatement(InsertPositionSql)) {
-            int primkey = 0;
+                PreparedStatement pstmt = con.prepareStatement(InsertPositionSql, Statement.RETURN_GENERATED_KEYS)) {
+            primkey = 0;
 
             pstmt.setString(1, cat.name);
             pstmt.setString(2, cat.raceCats);
@@ -45,6 +48,7 @@ public class CatRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return primkey;
     }
 
     public List<Cat> getMatchedAndGetMatches(int id) {
