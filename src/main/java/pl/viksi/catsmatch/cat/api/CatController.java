@@ -9,6 +9,7 @@ import pl.viksi.catsmatch.cat.persistence.CatRepository;
 import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +36,13 @@ public class CatController {
     }
 
     @PostMapping("/owners/{ownerid}/cats")
-    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) {
+    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) throws SQLException {
 
         log.info("Starting addCat with changCatNameRequest" + changCatNameRequest);
+
+        if (repositoryOwner.findOwner(ownerid) == null) {
+            throw new RuntimeException("no owner found");
+        }
 
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
                 changCatNameRequest.health, ownerid);

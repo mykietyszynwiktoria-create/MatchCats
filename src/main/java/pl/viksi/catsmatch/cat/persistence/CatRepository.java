@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.Health;
+import pl.viksi.catsmatch.cat.domain.Owner;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -153,8 +154,6 @@ public class CatRepository {
             throw new RuntimeException(e);
         }
 
-
-
     }
 
     public List<Cat> getCats(String raceCats, Health health) {
@@ -190,5 +189,7 @@ public class CatRepository {
         return catsList;
 
     }
-}
+
+
+    }
 

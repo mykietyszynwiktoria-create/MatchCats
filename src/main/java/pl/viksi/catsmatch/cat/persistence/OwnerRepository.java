@@ -1,5 +1,7 @@
 package pl.viksi.catsmatch.cat.persistence;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.domain.Owner;
 
 import java.sql.*;
@@ -40,5 +42,22 @@ public class OwnerRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+    }
+
+    public Owner findOwner(int ownerid) throws SQLException {
+
+        PreparedStatement pstmt = con.prepareStatement("SELECT * FROM usercat WHERE usercatid = ?");
+        pstmt.setInt(1, ownerid);
+        ResultSet resultSet = pstmt.executeQuery();
+        if (resultSet.next()) {
+            int usercatid = resultSet.getInt("usercatid");
+            int freesubscriptions = resultSet.getInt("freesubscriptions");
+            int counterforfreesub = resultSet.getInt("counterforfreesub");
+            String name1 = resultSet.getString("name1");
+                    return new Owner(usercatid, freesubscriptions, counterforfreesub, name1);
+
+        }
+        return null;
     }
 }

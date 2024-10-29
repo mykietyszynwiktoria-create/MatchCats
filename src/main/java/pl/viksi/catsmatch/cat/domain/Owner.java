@@ -1,11 +1,28 @@
 package pl.viksi.catsmatch.cat.domain;
 
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+
+@Entity
+@Table(name="usercat")
 public class Owner {
 
+    @GenericGenerator(name = "generator", strategy = "increment")
+    @Id
+    @GeneratedValue( generator = "generator")
+
+    @Column(name = "usercatid")
+    public Integer usercatid;
+
+    @Column(name = "freesubscriptions")
     public int freesubscriptions;
+
+    @Column(name = "counterforfreesub")
     public int counterforfreesub;
+
+    @Column(name = "name1")
     public String name1;
-    public int usercatid;
+
 
     public int getFreesubscriptions() {
         return freesubscriptions;
@@ -23,7 +40,11 @@ public class Owner {
         return usercatid;
     }
 
-    public Owner(int freesubscriptions, int counterforfreesub, String name1, int usercatid) {
+    public Owner(int usercatid, int freesubscriptions, int counterforfreesub, String name1) {
+        this.usercatid = usercatid;
+        this.freesubscriptions = freesubscriptions;
+        this.counterforfreesub = counterforfreesub;
+        this.name1 = name1;
 
     }
 
