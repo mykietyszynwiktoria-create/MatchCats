@@ -1,8 +1,10 @@
 package pl.viksi.catsmatch.cat.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import pl.viksi.catsmatch.cat.domain.Cat;
+import pl.viksi.catsmatch.cat.domain.CustomerException;
 import pl.viksi.catsmatch.cat.domain.MatchCatService;
 import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
@@ -30,6 +32,13 @@ public class CatController {
 
     }
 
+    @ResponseStatus(value= HttpStatus.BAD_REQUEST,
+            reason="user error")
+    @ExceptionHandler(CustomerException.class)
+    public void badRequest() {
+        // Nothing to do
+    }
+
     @PostMapping("/cats/{id}/matches")
     public List<Cat> getMatches(@PathVariable int id) {
         return matchCatService.getMatchedAndGetMatches(id);
@@ -41,7 +50,7 @@ public class CatController {
         log.info("Starting addCat with changCatNameRequest" + changCatNameRequest);
 
         if (repositoryOwner.findOwner(ownerid) == null) {
-            throw new RuntimeException("no owner found");
+            throw new CustomerException("no owner found");
         }
 
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
