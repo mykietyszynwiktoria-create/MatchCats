@@ -30,4 +30,34 @@ public class PrivateUser {
     this.email = email;
 
     }
+
+    public PrivateUser(){
+
+    }
+
+    public void setId(int id){
+        this.id = id;
+    }
+
+    public void setNick_login(String nick_login) {
+        this.nick_login = nick_login;
+    }
+
+    public void setLogin_password(String login_password) {
+       this.login_password = login_password;
+    }
+
+
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 }

@@ -1,11 +1,7 @@
 package pl.viksi.catsmatch.user.api;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import pl.viksi.catsmatch.user.domain.Chat;
-import pl.viksi.catsmatch.user.domain.CreatUser;
-import pl.viksi.catsmatch.user.domain.Message;
-import pl.viksi.catsmatch.user.domain.PrivateUser;
+import pl.viksi.catsmatch.user.domain.*;
 import pl.viksi.catsmatch.user.persistence.ChatRepository;
 import pl.viksi.catsmatch.user.persistence.UsersRepository;
 
@@ -17,7 +13,7 @@ import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 public class UserController {
 
     @Autowired
-    UsersRepository repository = new UsersRepository();
+    UsersRepository repositoryUser = new UsersRepository();
 
     @Autowired
     ChatRepository repositoryChat = new ChatRepository();
@@ -30,7 +26,7 @@ public class UserController {
 
         log.info("Check new User" + newUser);
 
-        return repository.saveUser(newUser);
+        return repositoryUser.saveUser(newUser);
     }
 
 

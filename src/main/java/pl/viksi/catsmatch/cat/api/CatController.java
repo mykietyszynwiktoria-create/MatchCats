@@ -9,6 +9,8 @@ import pl.viksi.catsmatch.cat.domain.MatchCatService;
 import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
 import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
+import pl.viksi.catsmatch.user.domain.UserService;
+import pl.viksi.catsmatch.user.persistence.UsersRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -26,7 +28,13 @@ public class CatController {
     OwnerRepository repositoryOwner = new OwnerRepository();
 
     @Autowired
+    UserService userService;
+
+    @Autowired
     MatchCatService matchCatService;
+
+
+
 
     CatController(){
 
@@ -75,7 +83,13 @@ public class CatController {
 
     @PutMapping("/owners/{userid}")
     public List<Owner> addOwner(@RequestBody AddOwner addOwner, @PathVariable int userid){
-        //repositoryOwner.AddOwner(addOwner.name1, userid);
+
+        log.info("addOwner with userid " + userid);
+
+        if(!userService.existUser(userid)){
+            throw new CustomerException("no user found");
+        }
+
         return null;
     }
 
