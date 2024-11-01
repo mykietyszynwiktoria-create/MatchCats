@@ -8,6 +8,9 @@ import java.sql.*;
 
 public class OwnerRepository {
 
+    @Autowired
+    JpaOwnerRepository jpaOwnerRepository;
+
     Connection con;
 
     public OwnerRepository() {
@@ -59,5 +62,10 @@ public class OwnerRepository {
 
         }
         return null;
+    }
+
+    public Owner saveOwner(Owner owner){
+
+        return  jpaOwnerRepository.save(owner);
     }
 }

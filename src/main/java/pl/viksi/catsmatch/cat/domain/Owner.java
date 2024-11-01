@@ -40,6 +40,10 @@ public class Owner {
         return usercatid;
     }
 
+    public Owner() {
+
+    }
+
     public Owner(int usercatid, int freesubscriptions, int counterforfreesub, String name1) {
         this.usercatid = usercatid;
         this.freesubscriptions = freesubscriptions;
