@@ -21,8 +21,7 @@ public class Owner {
     public int counterforfreesub;
 
     @Column(name = "name1")
-    public String name1;
-
+    public String name;
 
     public int getFreesubscriptions() {
         return freesubscriptions;
@@ -32,8 +31,8 @@ public class Owner {
         return counterforfreesub;
     }
 
-    public String getName1() {
-        return name1;
+    public String getName() {
+        return name;
     }
 
     public int getUsercatid() {
@@ -44,29 +43,29 @@ public class Owner {
 
     }
 
-    public Owner(int usercatid, int freesubscriptions, int counterforfreesub, String name1) {
+    public Owner(int usercatid, int freesubscriptions, int counterforfreesub, String name) {
         this.usercatid = usercatid;
         this.freesubscriptions = freesubscriptions;
         this.counterforfreesub = counterforfreesub;
-        this.name1 = name1;
+        this.name = name;
 
     }
 
     @Override
     public String toString() {
-        return String.format("Owner with id = %d and with name1 = %s", usercatid, name1);
+        return String.format("Owner with id = %d and with name = %s", usercatid, name);
 
     }
     public int setFreesubscriptions(int freesubscriptions) {
         return freesubscriptions;
     }
 
-    public int setcounterforfreesub(int counterforfreesub) {
+    public int setCounterforfreesub(int counterforfreesub) {
         return counterforfreesub;
     }
 
-    public String setName1(String name1) {
-        return name1;
+    public String setName(String name) {
+        return name;
     }
 
     public int setUsercatid(int usercatid) {

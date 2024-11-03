@@ -24,8 +24,6 @@ public class UserService {
 
         PrivateUser findByIdUserId = jpaUserRepository.findById(userId);
 
-        log.info("Find userId in existUser " + findByIdUserId);
-
         return findByIdUserId != null;
     }
 }

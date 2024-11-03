@@ -8,14 +8,10 @@ import pl.viksi.catsmatch.cat.domain.CustomerException;
 import pl.viksi.catsmatch.cat.domain.MatchCatService;
 import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
-import pl.viksi.catsmatch.cat.persistence.JpaOwnerRepository;
 import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
 import pl.viksi.catsmatch.user.domain.UserService;
-import pl.viksi.catsmatch.user.persistence.UsersRepository;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
@@ -26,7 +22,8 @@ public class CatController {
 
     CatRepository repository = new CatRepository();
 
-    OwnerRepository repositoryOwner = new OwnerRepository();
+    @Autowired
+    OwnerRepository repositoryOwner;
 
     @Autowired
     UserService userService;
@@ -83,15 +80,17 @@ public class CatController {
     @PutMapping("/owners/{userid}")
     public Owner addOwner(@RequestBody AddOwner addOwner, @PathVariable int userid){
 
-        log.info("addOwner with userid " + userid);
+        log.info("Show all AddOwner = " + " userid = " + userid);
 
         if(!userService.existUser(userid)){
             throw new CustomerException("no user found");
         }
 
-        Owner owner = new Owner();
+        Owner owner = new Owner(userid, 0, 0, addOwner.name );
 
-        owner = repositoryOwner.saveOwner(owner) ;
+        log.info("Show Owner = " + owner);
+
+        owner = repositoryOwner.insertOwner(owner); ;
 
         return owner;
     }

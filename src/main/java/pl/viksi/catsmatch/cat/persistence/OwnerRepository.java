@@ -1,15 +1,14 @@
 package pl.viksi.catsmatch.cat.persistence;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.viksi.catsmatch.cat.domain.Owner;
 
 import java.sql.*;
 
-public class OwnerRepository {
+import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 
-    @Autowired
-    JpaOwnerRepository jpaOwnerRepository;
+@Component
+public class OwnerRepository {
 
     Connection con;
 
@@ -24,18 +23,21 @@ public class OwnerRepository {
 
     }
 
-    public void AddOwner(Owner owner) {
+    public Owner insertOwner(Owner owner) {
 
-        String InsertPositionSql = "Insert into usercat(freesubscriptions, counterforfreesub, name1, usercatid )" +
+        log.info("Check InsertPositionSql name1" + owner.name);
+
+        String InsertPositionSql = "Insert into usercat(usercatid, freesubscriptions, counterforfreesub, name1)" +
                 " values (?, ?, ?, ?);";
         try (
                 PreparedStatement pstmt = con.prepareStatement(InsertPositionSql)) {
             int primkey = 0;
 
-            pstmt.setInt(1, owner.freesubscriptions);
-            pstmt.setInt(2, owner.counterforfreesub);
-            pstmt.setString(3, owner.name1);
-            pstmt.setInt(4, owner.usercatid);
+            pstmt.setInt(1, owner.usercatid);
+            pstmt.setInt(2, owner.freesubscriptions);
+            pstmt.setInt(3, owner.counterforfreesub);
+            pstmt.setString(4, owner.name);
+
             pstmt.execute();
             {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
@@ -45,7 +47,7 @@ public class OwnerRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
+        return null;
     }
 
     public Owner findOwner(int ownerid) throws SQLException {
@@ -64,8 +66,4 @@ public class OwnerRepository {
         return null;
     }
 
-    public Owner saveOwner(Owner owner){
-
-        return  jpaOwnerRepository.save(owner);
-    }
 }

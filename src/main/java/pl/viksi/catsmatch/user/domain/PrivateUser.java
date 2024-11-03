@@ -35,29 +35,35 @@ public class PrivateUser {
 
     }
 
-    public void setId(int id){
-        this.id = id;
-    }
-
-    public void setNick_login(String nick_login) {
-        this.nick_login = nick_login;
-    }
-
-    public void setLogin_password(String login_password) {
-       this.login_password = login_password;
-    }
 
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+    @Override
+    public String toString() {
+        return String.format("Owner with id = %d and with nick_login = %s and with login_password = %s " +
+                "and with firstname = %s and with surname = %s and with email = %s ", id, nick_login, login_password,
+                firstname, surname, email);
+
+    }
+    public int setId(int id) {
+        return id;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
+    public String setNick_Login(String nick_login) {
+        return nick_login;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public String setLogin_Password(String login_password) {
+        return login_password;
     }
+
+    public String setFirstname(String firstname) {
+        return firstname;
+    }
+
+    public String setSurname(String surname){return surname;}
+
+    public String setEmail(String email){return email;}
+
+
 
 }
