@@ -31,11 +31,6 @@ public class CatController {
     @Autowired
     MatchCatService matchCatService;
 
-
-    CatController() {
-
-    }
-
     @ResponseStatus(value = HttpStatus.BAD_REQUEST,
             reason = "user error")
     @ExceptionHandler(CustomerException.class)
@@ -45,7 +40,7 @@ public class CatController {
 
     @PostMapping("/cats/{id}/matches")
     public List<Cat> getMatches(@PathVariable int id) {
-        return matchCatService.getMatchedAndGetMatches(id);
+        return matchCatService.createNewMatches(id);
     }
 
     @PostMapping("/owners/{ownerid}/cats")
