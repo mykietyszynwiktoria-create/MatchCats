@@ -32,12 +32,12 @@ public class CatController {
     MatchCatService matchCatService;
 
 
-    CatController(){
+    CatController() {
 
     }
 
-    @ResponseStatus(value= HttpStatus.BAD_REQUEST,
-            reason="user error")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
+            reason = "user error")
     @ExceptionHandler(CustomerException.class)
     public void badRequest() {
         // Nothing to do
@@ -68,7 +68,7 @@ public class CatController {
     }
 
     @DeleteMapping("/cats/{id}")
-    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest,@PathVariable int catid) {
+    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int catid) {
         repository.deleteCat(catid);
     }
 
@@ -78,22 +78,32 @@ public class CatController {
     }
 
     @PutMapping("/owners/{userid}")
-    public Owner addOwner(@RequestBody AddOwner addOwner, @PathVariable int userid){
+    public Owner addOwner(@RequestBody AddOwner addOwner, @PathVariable int userid) {
 
-        log.info("Show all AddOwner = " + " userid = " + userid);
+        if (!userService.existUser(userid)) {
+            log.warn(" Add owner: user not found. Userid = " + userid);
+            throw new CustomerException("no user found ");
 
-        if(!userService.existUser(userid)){
-            throw new CustomerException("no user found");
         }
 
-        Owner owner = new Owner(userid, 0, 0, addOwner.name );
+        try {
 
-        log.info("Show Owner = " + owner);
+            Owner owner;
+            if (repositoryOwner.findOwner(userid) == null) {
+                log.info("Show not found owner =" + userid);
+                owner = new Owner(userid, 0, 0, addOwner.name);
+                log.info("Show new owner =" + owner);
+                return repositoryOwner.insertOwner(owner);
 
-        owner = repositoryOwner.insertOwner(owner); ;
+            } else {
+                log.info("show exist owner ="+ userid);
 
-        return owner;
+                return repositoryOwner.findOwner(userid);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
-
 }
 

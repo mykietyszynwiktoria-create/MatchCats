@@ -1,7 +1,7 @@
 package pl.viksi.catsmatch.cat.api;
 
 public class AddOwner {
-    ;
+
     String name;
 
     public void setName(String name){
