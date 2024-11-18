@@ -31,8 +31,6 @@ create table cat (
 insert into cat values (1, 'Puszek', 'bialy', 1);
 insert into cat values (2, 'Puszek', 'rudy', 2);
 insert into cat values (3, 'Puszek', 'bialy', 1);
-insert into cat values (4, 'Celina', 'niebieski', 3);
-insert into cat values (5, 'Celina', 'niebieski', 4);
 insert into cat values (6, 'Pysio', 'rudy', 2);
 
 create table relationshipcats (
@@ -52,12 +50,11 @@ create table relationshipcats (
    REFERENCES relationshipcats(relationshipcatsID)
 
         );
-insert into relationshipcats values (1, 1, 4, 1);
-insert into relationshipcats values (2, 3, 5, 3);
+
 select * from relationshipcats;
 
 ALTER TABLE cat
-ADD health varchar(20)
+ADD health varchar(20);
 
 create SEQUENCE serialCat
 START WITH 1000
@@ -70,9 +67,6 @@ INCREMENT BY 1;
 ALTER TABLE relationshipcats
 DROP COLUMN possiblechatid;
 
-ALTER TABLE cat
-ADD sex VARCHAR(100);
-
 CREATE TABLE users_users (
 
         id int primary key,
@@ -84,7 +78,6 @@ CREATE TABLE users_users (
 
 );
 
-DROP TABLE chat_information;
 
 create table users_chats (
 
