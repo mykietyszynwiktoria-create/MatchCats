@@ -27,8 +27,8 @@ public class CatRepository {
 
     public int saveCat(Cat cat) {
 
-        String InsertPositionSql = "Insert into cat(catname, catcolor, catID," +
-                " health) values (?, ?, nextval('serialCat'), ?);";
+        String InsertPositionSql = "Insert into cat(catname, catcolor, userid, catID," +
+                " health) values (?, ?, ?, nextval('serialCat'), ?);";
         int primkey;
         try (
                 PreparedStatement pstmt = con.prepareStatement(InsertPositionSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -36,7 +36,8 @@ public class CatRepository {
 
             pstmt.setString(1, cat.name);
             pstmt.setString(2, cat.raceCats);
-            pstmt.setString(3, String.valueOf(cat.health));
+            pstmt.setInt(3, cat.ownerid);
+            pstmt.setString(4, String.valueOf(cat.health));
             pstmt.execute();
             {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
@@ -143,7 +144,7 @@ public class CatRepository {
 
                 health = Health.valueOf(resultSet.getString("health"));
             }
-            int ownerid = resultSet.getInt("ownerid");
+            int ownerid = resultSet.getInt("userid");
             Cat cat = new Cat(catId, catname, catcolor, health, ownerid);
 
             return cat;
@@ -175,7 +176,7 @@ public class CatRepository {
 
                     healthFromDb = Health.valueOf(resultSet.getString("health"));
                 }
-                int ownerid = resultSet.getInt("ownerid");
+                int ownerid = resultSet.getInt("userid");
                 Cat cat = new Cat(catId, catname, catcolor, healthFromDb, ownerid);
                 catsList.add(cat);
             }

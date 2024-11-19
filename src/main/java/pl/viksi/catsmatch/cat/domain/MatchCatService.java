@@ -20,7 +20,9 @@ public class MatchCatService {
 
     @Autowired
     RelationShipCatsRepository relationRepository;
-    UserService userService = new UserService();
+
+    @Autowired
+    UserService userService;
 
     public List<Cat> createNewMatches(int idCat) {
 
@@ -50,7 +52,11 @@ public class MatchCatService {
     }
 
     private List<Integer> getOwnersIds(List<Cat> matchedCats) {
-        return List.of();
+        List<Integer> matchedOwnersId = new ArrayList<>();
+        for( Cat matchedCat : matchedCats){
+            matchedOwnersId.add(matchedCat.ownerid);
+        }
+        return matchedOwnersId;
     }
 
     //dodaj get userid

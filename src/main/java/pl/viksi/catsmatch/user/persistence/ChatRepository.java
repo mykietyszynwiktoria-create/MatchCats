@@ -15,6 +15,7 @@ import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 @Component
 public class ChatRepository {
     private static final Log log = LogFactory.getLog(ChatRepository.class);
+
     @Autowired
     JpaChatRepository jpaChatRepository;
 

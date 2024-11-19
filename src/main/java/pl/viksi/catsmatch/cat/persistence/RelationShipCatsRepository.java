@@ -10,8 +10,8 @@ public class RelationShipCatsRepository {
     @Autowired
     JpaRelationshipCatRepository jpaRelationshipCatRepository;
 
-    public void createRelationship(int id, int matchedCatId) {
-        var relationship = new RelationshipCat(id, matchedCatId);
+    public void createRelationship(int idCat, int matchedCatId) {
+        var relationship = new RelationshipCat(idCat, matchedCatId);
 
         jpaRelationshipCatRepository.save(relationship);
 

@@ -25,6 +25,16 @@ public class Chat {
 
     }
 
+    public Chat(int user1ID, int user2ID, String text){
+        this.user1ID = user1ID;
+        log.info("check user2ID" + user2ID);
+
+        this.user2ID = user2ID;
+        log.info("check text " + text);
+
+        this.text= text;
+    }
+
     public Chat(int id, int user1ID, int user2ID, String text) {
         log.info("check id" + id);
 

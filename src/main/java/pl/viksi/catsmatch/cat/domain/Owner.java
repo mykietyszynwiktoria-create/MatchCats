@@ -12,7 +12,7 @@ public class Owner {
     @GeneratedValue( generator = "generator")
 
     @Column(name = "usercatid")
-    public Integer usercatid;
+    public int usercatid;
 
     @Column(name = "freesubscriptions")
     public int freesubscriptions;

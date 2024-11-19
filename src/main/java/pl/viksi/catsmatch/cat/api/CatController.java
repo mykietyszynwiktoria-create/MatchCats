@@ -9,6 +9,7 @@ import pl.viksi.catsmatch.cat.domain.MatchCatService;
 import pl.viksi.catsmatch.cat.domain.Owner;
 import pl.viksi.catsmatch.cat.persistence.CatRepository;
 import pl.viksi.catsmatch.cat.persistence.OwnerRepository;
+import pl.viksi.catsmatch.cat.persistence.RelationShipCatsRepository;
 import pl.viksi.catsmatch.user.domain.UserService;
 
 import java.sql.SQLException;
@@ -34,8 +35,8 @@ public class CatController {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST,
             reason = "user error")
     @ExceptionHandler(CustomerException.class)
-    public void badRequest() {
-        // Nothing to do
+    public void badRequest(CustomerException customerException) {
+        log.warn("CustomerException occurred: ", customerException);
     }
 
     @PostMapping("/cats/{id}/matches")
@@ -62,8 +63,8 @@ public class CatController {
         return primkey;
     }
 
-    @DeleteMapping("/cats/{id}")
-    public void deleteCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int catid) {
+    @DeleteMapping("/cats/{catid}")
+    public void deleteCat(@PathVariable int catid) {
         repository.deleteCat(catid);
     }
 

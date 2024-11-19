@@ -28,10 +28,6 @@ create table cat (
    FOREIGN KEY(userID)
    REFERENCES usercat(usercatID)
         );
-insert into cat values (1, 'Puszek', 'bialy', 1);
-insert into cat values (2, 'Puszek', 'rudy', 2);
-insert into cat values (3, 'Puszek', 'bialy', 1);
-insert into cat values (6, 'Pysio', 'rudy', 2);
 
 create table relationshipcats (
         relationshipcatsID int primary key,
@@ -57,11 +53,11 @@ ALTER TABLE cat
 ADD health varchar(20);
 
 create SEQUENCE serialCat
-START WITH 1000
+START WITH 1
 INCREMENT BY 1;
 
 create SEQUENCE relationshipcats_seq
-START WITH 1000
+START WITH 1
 INCREMENT BY 1;
 
 ALTER TABLE relationshipcats
@@ -94,4 +90,6 @@ create table users_chats (
    REFERENCES users_users(id)
 
    );
+
+
 

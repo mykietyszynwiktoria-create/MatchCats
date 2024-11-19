@@ -13,10 +13,10 @@ import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 public class UserController {
 
     @Autowired
-    UsersRepository repositoryUser = new UsersRepository();
+    UsersRepository repositoryUser;
 
     @Autowired
-    ChatRepository repositoryChat = new ChatRepository();
+    ChatRepository repositoryChat;
 
 
     @PostMapping("/users")
@@ -46,9 +46,11 @@ public class UserController {
 
         Chat chat = repositoryChat.findChat(idchat);
 
-        log.info("chat" + idchat);
+        log.info("message" + message);
 
          chat.addMessage(message);
+
+         log.info("saveChat= " + chat);
 
         return repositoryChat.saveChat(chat);
     }
