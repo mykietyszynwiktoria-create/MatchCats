@@ -154,20 +154,24 @@ public class CatRepository {
 
     }
 
-    public List<Cat> getCatsNotMatchedYet(String raceCats, Health health, int idCat) {
+    public List<Cat> getCatsNotMatchedYet(String raceCats, Health health, int ownerid ) {
         log.info("getCats: raceCats " + raceCats + " health " + health);
+
+
         List<Cat> catsList = new ArrayList<>();
-        String queryGetCats = "SELECT *  FROM cat WHERE (catcolor = ?) AND (health = ?)";
+        String queryGetCats = "SELECT * FROM cat WHERE ((catcolor = ?) AND (health = ?) AND (userid <> ?))";
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
 
             pstmt.setString(1, raceCats);
             pstmt.setString(2, String.valueOf(health));
+            pstmt.setInt(3,ownerid);
 
             ResultSet resultSet = pstmt.executeQuery();
             while (resultSet.next()) {
-                int catId = resultSet.getInt("catId");
+                int catId = resultSet.getInt("catid");
                 String catname = resultSet.getString("catname");
                 String catcolor = resultSet.getString("catcolor");
+                ownerid = resultSet.getInt("userid");
                 Health healthFromDb;
                 if (resultSet.getString("health") == null) {
                     healthFromDb = null;
@@ -176,7 +180,6 @@ public class CatRepository {
 
                     healthFromDb = Health.valueOf(resultSet.getString("health"));
                 }
-                int ownerid = resultSet.getInt("userid");
                 Cat cat = new Cat(catId, catname, catcolor, healthFromDb, ownerid);
                 catsList.add(cat);
             }
