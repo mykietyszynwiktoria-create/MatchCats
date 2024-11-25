@@ -34,4 +34,9 @@ public class ChatRepository {
     public Chat findChat(int idchat){
         return jpaChatRepository.findById(idchat);
     }
+
+    public boolean exsistChat(int user1ID, int user2ID){
+        return jpaChatRepository.existsByUser1IDAndUser2ID(user1ID,user2ID);
+
+    }
 }

@@ -12,4 +12,7 @@ public interface JpaChatRepository extends JpaRepository<Chat, Integer> {
     List<Chat> findByUser1IDOrUser2ID(int user1ID, int user2ID);
 
     Chat findById(int idchat);
+
+    boolean existsByUser1IDAndUser2ID(int user1ID, int user2ID);
+
 }

@@ -33,9 +33,9 @@ public class UserController {
     @GetMapping("/users/{userId}/chats")
     public List<Chat> chats (@PathVariable int userId){
 
-                log.info("check chats " + userId);
+        log.info("check chats " + userId);
 
-                return repositoryChat.getChats(userId);
+        return repositoryChat.getChats(userId);
 
     }
 
