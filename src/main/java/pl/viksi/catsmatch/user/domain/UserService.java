@@ -18,7 +18,7 @@ public class UserService {
     public void createChats(int userId, List<Integer> usersMatchedId) {
         for (Integer userMatchedId : usersMatchedId) {
 
-            if (!repositoryChat.exsistChat(userId,userMatchedId)){
+            if (!repositoryChat.exsistChat(userId,userMatchedId) && !repositoryChat.exsistChat(userMatchedId,userId)){
                 Chat createChat = new Chat(userId, userMatchedId, " ");
                 repositoryChat.saveChat(createChat);
             }
