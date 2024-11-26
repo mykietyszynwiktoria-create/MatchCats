@@ -3,6 +3,7 @@ package pl.viksi.catsmatch.cat.persistence;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import pl.viksi.catsmatch.cat.domain.Cat;
+import pl.viksi.catsmatch.cat.domain.CustomerException;
 import pl.viksi.catsmatch.cat.domain.Health;
 import pl.viksi.catsmatch.cat.domain.Sex;
 
@@ -142,7 +143,13 @@ public class CatRepository {
             pstmt.setInt(1, catId);
 
             ResultSet resultSet = pstmt.executeQuery();
-            resultSet.next();
+
+            if (!resultSet.next()) {
+                log.warn("There is no cat with id: " + catId);
+                 throw new CustomerException("no cat found");
+
+            }
+
             catId = resultSet.getInt("catId");
             String catname = resultSet.getString("catname");
             String catcolor = resultSet.getString("catcolor");
@@ -159,7 +166,6 @@ public class CatRepository {
                 sex = null;
 
             } else {
-log.warn("hjjnj "+resultSet.getString("sex"));
                 sex = Sex.valueOf(resultSet.getString("sex"));
             }
             int ownerid = resultSet.getInt("userid");
