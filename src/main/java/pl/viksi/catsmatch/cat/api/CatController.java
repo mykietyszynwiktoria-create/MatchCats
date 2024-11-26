@@ -54,7 +54,7 @@ public class CatController {
         }
 
         Cat newCat = new Cat(changCatNameRequest.ciciuchName, changCatNameRequest.ciciuchRace,
-                changCatNameRequest.health, ownerid);
+                changCatNameRequest.health,changCatNameRequest.sex, ownerid);
 
         log.info("Adding new Cat to cat" + newCat);
 

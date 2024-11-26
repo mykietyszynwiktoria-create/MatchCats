@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.Health;
+import pl.viksi.catsmatch.cat.domain.Sex;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class CatRepository {
     public int saveCat(Cat cat) {
 
         String InsertPositionSql = "Insert into cat(catname, catcolor, userid, catID," +
-                " health) values (?, ?, ?, nextval('serialCat'), ?);";
+                " health, sex) values (?, ?, ?, nextval('serialCat'), ?, ?);";
         int primkey;
         try (
                 PreparedStatement pstmt = con.prepareStatement(InsertPositionSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -38,6 +39,7 @@ public class CatRepository {
             pstmt.setString(2, cat.raceCats);
             pstmt.setInt(3, cat.ownerid);
             pstmt.setString(4, String.valueOf(cat.health));
+            pstmt.setString(5, String.valueOf(cat.sex));
             pstmt.execute();
             {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
@@ -70,8 +72,16 @@ public class CatRepository {
 
                     health = Health.valueOf(resultSet.getString("health"));
                 }
+                Sex sex;
+                if (resultSet.getString("sex") == null) {
+                    sex = null;
+
+                } else {
+
+                    sex = Sex.valueOf(resultSet.getString("sex"));
+                }
                 int ownerid = resultSet.getInt("ownerid");
-                Cat cat = new Cat(catId, catname, catcolor, health, ownerid);
+                Cat cat = new Cat(catId, catname, catcolor, health, sex, ownerid);
                 catList.add(cat);
 
             }
@@ -144,8 +154,16 @@ public class CatRepository {
 
                 health = Health.valueOf(resultSet.getString("health"));
             }
+            Sex sex;
+            if (resultSet.getString("sex") == null) {
+                sex = null;
+
+            } else {
+
+                sex = Sex.valueOf(resultSet.getString("sex"));
+            }
             int ownerid = resultSet.getInt("userid");
-            Cat cat = new Cat(catId, catname, catcolor, health, ownerid);
+            Cat cat = new Cat(catId, catname, catcolor, health, sex, ownerid);
 
             return cat;
         } catch (SQLException e) {
@@ -180,7 +198,15 @@ public class CatRepository {
 
                     healthFromDb = Health.valueOf(resultSet.getString("health"));
                 }
-                Cat cat = new Cat(catId, catname, catcolor, healthFromDb, ownerid);
+                Sex sexFromDb;
+                if (resultSet.getString("sex") == null) {
+                    sexFromDb = null;
+
+                } else {
+
+                    sexFromDb = Sex.valueOf(resultSet.getString("sex"));
+                }
+                Cat cat = new Cat(catId, catname, catcolor, healthFromDb, sexFromDb, ownerid);
                 catsList.add(cat);
             }
         } catch (SQLException e) {

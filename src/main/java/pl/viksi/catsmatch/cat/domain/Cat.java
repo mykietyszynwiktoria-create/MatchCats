@@ -22,6 +22,10 @@ public class Cat {
         return health;
     }
 
+    public Sex getSex(){
+        return sex;
+    }
+
     public int getOwnerid(){return ownerid;}
 
 
@@ -30,8 +34,9 @@ public class Cat {
     public int idCat;
     public Health health;
     public int ownerid;
+    public Sex sex;
 
-    public Cat(String name, String raceCats, Health health, int ownerid) {
+    public Cat(String name, String raceCats, Health health, Sex sex, int ownerid) {
 
         this.name = name;
 
@@ -39,13 +44,15 @@ public class Cat {
 
         this.health = health;
 
+        this.sex = sex;
+
         this.ownerid = ownerid;
 
     }
 
-    public Cat(int idCat, String name, String raceCats, Health health, int ownerid) {
+    public Cat(int idCat, String name, String raceCats, Health health, Sex sex, int ownerid) {
 
-        this(name, raceCats, health, ownerid);
+        this(name, raceCats, health, sex, ownerid);
 
         this.idCat = idCat;
 
@@ -69,6 +76,10 @@ public class Cat {
 
     public void setHealth(Health health) {
         this.health = health;
+    }
+
+    public void setSex(Sex sex) {
+        this.sex = sex;
     }
 
     public void setOwnerid(int ownerid) { this.ownerid = ownerid;}

@@ -1,9 +1,11 @@
 package pl.viksi.catsmatch.cat.api;
 
 import pl.viksi.catsmatch.cat.domain.Health;
+import pl.viksi.catsmatch.cat.domain.Sex;
 
 public class ChangCatNameRequest {
 
+    Sex sex;
     String ciciuchName;
     String ciciuchRace;
     Health health;
