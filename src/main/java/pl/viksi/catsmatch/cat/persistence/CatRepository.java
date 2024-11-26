@@ -178,17 +178,19 @@ public class CatRepository {
 
     }
 
-    public List<Cat> getCatsNotMatchedYet(String raceCats, Health health, int ownerid ) {
-        log.info("getCats: raceCats " + raceCats + " health " + health);
+    public List<Cat> getCatsNotMatchedYet(String raceCats, Health health, Sex sex,int ownerid ) {
+        log.info("getCats: raceCats " + raceCats + " health " + health + "sex" + sex);
 
 
         List<Cat> catsList = new ArrayList<>();
-        String queryGetCats = "SELECT * FROM cat WHERE ((catcolor = ?) AND (health = ?) AND (userid <> ?))";
+        String queryGetCats = "SELECT * FROM cat WHERE ((catcolor = ?) AND (health = ?) AND (userid <> ?) AND (sex <> ?))";
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
 
             pstmt.setString(1, raceCats);
             pstmt.setString(2, String.valueOf(health));
             pstmt.setInt(3,ownerid);
+            pstmt.setString(4,String.valueOf(sex));
+
 
             ResultSet resultSet = pstmt.executeQuery();
             while (resultSet.next()) {

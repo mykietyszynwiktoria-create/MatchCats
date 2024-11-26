@@ -31,8 +31,9 @@ public class MatchCatService {
         Cat cat = repository.getCat(idCat);
         log.info("cat returned: " + cat);
 
-        List<Cat> matchedCats = repository.getCatsNotMatchedYet(cat.raceCats, cat.health, cat.ownerid); // II krok
-        // todo opposite sex III krok
+        List<Cat> matchedCats = repository.getCatsNotMatchedYet(cat.raceCats, cat.health, cat.sex, cat.ownerid);
+        // III z matchy odejmujemy wpisy z relationship
+
         log.info("matchedCats" + matchedCats);
 
         List<Integer> matchedCatsIds = getIds(matchedCats);
