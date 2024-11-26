@@ -159,7 +159,7 @@ public class CatRepository {
                 sex = null;
 
             } else {
-
+log.warn("hjjnj "+resultSet.getString("sex"));
                 sex = Sex.valueOf(resultSet.getString("sex"));
             }
             int ownerid = resultSet.getInt("userid");

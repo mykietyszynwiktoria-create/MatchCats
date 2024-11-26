@@ -1,5 +1,6 @@
 package pl.viksi.catsmatch.cat.api;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,7 @@ public class CatController {
     }
 
     @PostMapping("/owners/{ownerid}/cats")
-    public int addCat(@RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) throws SQLException {
+    public int addCat(@Valid @RequestBody ChangCatNameRequest changCatNameRequest, @PathVariable int ownerid) throws SQLException {
 
         log.info("Starting addCat with changCatNameRequest" + changCatNameRequest);
 

@@ -1,10 +1,12 @@
 package pl.viksi.catsmatch.cat.api;
 
+import jakarta.validation.constraints.NotNull;
 import pl.viksi.catsmatch.cat.domain.Health;
 import pl.viksi.catsmatch.cat.domain.Sex;
 
 public class ChangCatNameRequest {
 
+    @NotNull
     Sex sex;
     String ciciuchName;
     String ciciuchRace;
@@ -38,4 +40,5 @@ public class ChangCatNameRequest {
         this.health = health;
     }
 
+    public void setSex(Sex sex){this.sex = sex;}
 }
