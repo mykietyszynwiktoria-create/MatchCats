@@ -15,6 +15,10 @@ public class RelationShipCatsRepository {
 
         jpaRelationshipCatRepository.save(relationship);
 
+    }
 
+
+    public boolean existRelationshipCat(int firstCatId, int secondCatId) {
+        return jpaRelationshipCatRepository.existsByFirstCatIdAndSecondCatId(firstCatId, secondCatId);
     }
 }

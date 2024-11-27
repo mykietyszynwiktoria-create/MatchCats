@@ -38,7 +38,11 @@ public class MatchCatService {
 
         List<Integer> matchedCatsIds = getIds(matchedCats);
         for(int matchedCatId : matchedCatsIds) {
-            //relationRepository.createRelationship(idCat, matchedCatId); II krok
+           if ((!relationRepository.existRelationshipCat(idCat, matchedCatId) &&
+                   (!relationRepository.existRelationshipCat(matchedCatId,idCat)))) {
+
+                relationRepository.createRelationship(idCat, matchedCatId);
+            }
         }
 
         List<Integer> matchedCatsOwnersIds = getOwnersIds(matchedCats);

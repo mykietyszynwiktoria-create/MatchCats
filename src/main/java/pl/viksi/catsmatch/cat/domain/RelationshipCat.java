@@ -25,4 +25,23 @@ public class RelationshipCat {
         this.firstCatId = firstCatId;
         this.secondCatId = secondCatId;
     }
+
+
+    public int getSecondCatId() {
+        return secondCatId;
+    }
+
+    public int getFirstCatId() {
+        return firstCatId;
+    }
+
+        public void setFirstCatId(int firstCatId) {
+        this.firstCatId = firstCatId;
+    }
+
+    public void setSecondCatId(int secondCatId) {
+        this.secondCatId = secondCatId;
+
+    }
 }
+
