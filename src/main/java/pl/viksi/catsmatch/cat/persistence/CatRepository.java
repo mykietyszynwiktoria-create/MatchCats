@@ -178,23 +178,41 @@ public class CatRepository {
 
     }
 
-    public List<Cat> getCatsNotMatchedYet(String raceCats, Health health, Sex sex,int ownerid ) {
+    public List<Cat> getCatsNotMatchedYet(int catId, String raceCats, Health health, Sex sex,int ownerid ) {
         log.info("getCats: raceCats " + raceCats + " health " + health + "sex" + sex);
 
 
         List<Cat> catsList = new ArrayList<>();
-        String queryGetCats = "SELECT * FROM cat WHERE ((catcolor = ?) AND (health = ?) AND (userid <> ?) AND (sex <> ?))";
+        String queryGetCats = """
+                SELECT *
+                FROM cat c1 INNER JOIN cat c2 ON (c1.catid < c2.catid) AND (c1.catid = ? OR c2.catid = ?)
+                    LEFT JOIN relationshipcats AS r
+                    ON (c1.catid = r.firstcatid AND c2.catid = r.secondcatid) OR
+                    (c1.catid = r.secondcatid AND c2.catid = r.firstcatid)
+                WHERE
+                      r.firstcatid is NULL
+                      AND c1.catcolor = ? AND c2.catcolor = ?
+                      AND c1.health = ? AND c2.health = ?
+                      AND c1.userid <> ? AND c2.userid <> ?
+                      AND c1.sex <> ? AND c2.sex <> ?
+                """;
+
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
 
-            pstmt.setString(1, raceCats);
-            pstmt.setString(2, String.valueOf(health));
-            pstmt.setInt(3,ownerid);
-            pstmt.setString(4,String.valueOf(sex));
-
+            pstmt.setInt(1, catId);
+            pstmt.setInt(2, catId);
+            pstmt.setString(3, raceCats);
+            pstmt.setString(4, raceCats);
+            pstmt.setString(5, String.valueOf(health));
+            pstmt.setString(6, String.valueOf(health));
+            pstmt.setInt(7,ownerid);
+            pstmt.setInt(8,ownerid);
+            pstmt.setString(9,String.valueOf(sex));
+            pstmt.setString(10, String.valueOf(sex));
 
             ResultSet resultSet = pstmt.executeQuery();
             while (resultSet.next()) {
-                int catId = resultSet.getInt("catid");
+                resultSet.getInt("catid");
                 String catname = resultSet.getString("catname");
                 String catcolor = resultSet.getString("catcolor");
                 ownerid = resultSet.getInt("userid");
