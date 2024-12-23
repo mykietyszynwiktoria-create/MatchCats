@@ -193,8 +193,8 @@ public class CatRepository {
                       r.firstcatid is NULL
                       AND c1.catcolor = ? AND c2.catcolor = ?
                       AND c1.health = ? AND c2.health = ?
-                      AND c1.userid <> ? AND c2.userid <> ?
-                      AND c1.sex <> ? AND c2.sex <> ?
+                      AND c1.userid <> c2.userid
+                      AND c1.sex <> c2.sex
                 """;
 
         try (PreparedStatement pstmt = con.prepareStatement(queryGetCats);) {
@@ -205,14 +205,10 @@ public class CatRepository {
             pstmt.setString(4, raceCats);
             pstmt.setString(5, String.valueOf(health));
             pstmt.setString(6, String.valueOf(health));
-            pstmt.setInt(7,ownerid);
-            pstmt.setInt(8,ownerid);
-            pstmt.setString(9,String.valueOf(sex));
-            pstmt.setString(10, String.valueOf(sex));
 
             ResultSet resultSet = pstmt.executeQuery();
             while (resultSet.next()) {
-                resultSet.getInt("catid");
+                var findToPair =resultSet.getInt("");
                 String catname = resultSet.getString("catname");
                 String catcolor = resultSet.getString("catcolor");
                 ownerid = resultSet.getInt("userid");
@@ -232,7 +228,7 @@ public class CatRepository {
 
                     sexFromDb = Sex.valueOf(resultSet.getString("sex"));
                 }
-                Cat cat = new Cat(catId, catname, catcolor, healthFromDb, sexFromDb, ownerid);
+                Cat cat = new Cat(findToPair,catname, catcolor, healthFromDb, sexFromDb, ownerid);
                 catsList.add(cat);
             }
         } catch (SQLException e) {
