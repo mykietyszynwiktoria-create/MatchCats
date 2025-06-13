@@ -1,9 +1,13 @@
 package pl.viksi.catsmatch.cat.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import pl.viksi.catsmatch.cat.domain.Cat;
 import pl.viksi.catsmatch.cat.domain.CustomerException;
 import pl.viksi.catsmatch.cat.domain.MatchCatService;
@@ -15,6 +19,8 @@ import pl.viksi.catsmatch.user.domain.UserService;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static pl.viksi.catsmatch.cat.persistence.CatRepository.log;
 
@@ -33,11 +39,20 @@ public class CatController {
     @Autowired
     MatchCatService matchCatService;
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
-            reason = "user error")
-    @ExceptionHandler(CustomerException.class)
-    public void badRequest(CustomerException customerException) {
-        log.warn("CustomerException occurred: ", customerException);
+
+    @ControllerAdvice
+    public class ExceptionController {
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<Object> handleError(HttpServletRequest request, Exception e)   {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Request: " + request.getRequestURL() + " raised " + e);
+            return ResponseEntity.internalServerError().body("error");
+        }
+
+        @ExceptionHandler({NoHandlerFoundException.class})
+        public ResponseEntity<Object> handleError404(HttpServletRequest request, Exception e)   {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Request: " + request.getRequestURL() + " raised " + e);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping("/cats/{id}/matches")
@@ -82,6 +97,7 @@ public class CatController {
             throw new CustomerException("no user found ");
 
         }
+
 
         try {
 

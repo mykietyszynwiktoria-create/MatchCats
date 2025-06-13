@@ -228,7 +228,7 @@ public class CatRepository {
 
                     sexFromDb = Sex.valueOf(resultSet.getString("sex"));
                 }
-                Cat cat = new Cat(findToPair,catname, catcolor, healthFromDb, sexFromDb, ownerid);
+                Cat cat = new Cat(findToPair, catname, catcolor, healthFromDb, sexFromDb, ownerid);
                 catsList.add(cat);
             }
         } catch (SQLException e) {

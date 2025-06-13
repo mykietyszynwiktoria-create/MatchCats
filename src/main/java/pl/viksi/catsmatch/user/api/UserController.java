@@ -1,6 +1,7 @@
 package pl.viksi.catsmatch.user.api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.viksi.catsmatch.cat.domain.CustomerException;
 import pl.viksi.catsmatch.user.domain.*;
 import pl.viksi.catsmatch.user.persistence.ChatRepository;
 import pl.viksi.catsmatch.user.persistence.UsersRepository;
@@ -18,6 +19,9 @@ public class UserController {
     @Autowired
     ChatRepository repositoryChat;
 
+    @Autowired
+    UserService userService;
+
 
     @PostMapping("/users")
     public PrivateUser addUser(@RequestBody CreatUser creatUser) {
@@ -34,6 +38,10 @@ public class UserController {
     public List<Chat> chats (@PathVariable int userId){
 
         log.info("check chats " + userId);
+        if (!userService.existUser(userId)) {
+            log.warn(" Add owner: user not found. Userid = " + userId);
+            throw new CustomerException("no user found 404 ");
+        }
 
         return repositoryChat.getChats(userId);
 
