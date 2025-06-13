@@ -1,5 +1,6 @@
 package pl.viksi.catsmatch.cat.api;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +43,10 @@ public class CatController {
 
     @ControllerAdvice
     public class ExceptionController {
-        @ExceptionHandler(Exception.class)
+        @ExceptionHandler(RuntimeException.class)
         public ResponseEntity<Object> handleError(HttpServletRequest request, Exception e)   {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Request: " + request.getRequestURL() + " raised " + e);
-            return ResponseEntity.internalServerError().body("error");
+            return ResponseEntity.notFound().build();
         }
 
         @ExceptionHandler({NoHandlerFoundException.class})
