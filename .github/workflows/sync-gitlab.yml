@@ -15,8 +15,6 @@ jobs:
       - name: Push to GitLab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-       run: |
-          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/wiktoria-postgres2/matchcats.git
-          git push gitlab HEAD:${{ github.ref_name }}
-               
-      
+        run: |
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/wiktoria-postgres2/matchcats.git"
+          git push gitlab "HEAD:${{ github.ref_name }}"
