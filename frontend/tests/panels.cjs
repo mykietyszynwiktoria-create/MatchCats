@@ -21,7 +21,14 @@ const assert=require('assert/strict');
  const page=await browser.newPage({viewport:{width:1440,height:1100}});
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url);
- await page.locator('a[href="#search"]').first().click();
+ assert.equal(await page.locator('.quick-action').count(),3);
+ await page.locator('.quick-action[href="#cats"]').click();
+ assert.equal(await page.locator('.cat-card').count(),2);
+ await page.locator('a[href="#dashboard"]').first().click();
+ await page.locator('.quick-action[href="#messages"]').click();
+ assert.equal(await page.locator('.chat-pane').count(),1);
+ await page.locator('a[href="#dashboard"]').first().click();
+ await page.locator('.quick-action[href="#search"]').click();
  await page.locator('#filters select[name="breed"]').selectOption('Maine Coon');
  await page.locator('#filters select[name="sex"]').selectOption('MALE');
  assert.equal(await page.locator('#search-results .cat-card').count(),1);
@@ -49,7 +56,7 @@ const assert=require('assert/strict');
  await page.locator('.cat-card').last().getByRole('button').click();
  await page.locator('[data-toggle]').click();
  assert.match(await page.locator('[data-toggle]').textContent(),/Włącz/);
- await page.locator('a[href="#settings"]').first().click();
+ await page.locator('#top-profile').click();
  await page.locator('#profile-form input[name="kennel"]').fill('Hodowla Testowa');
  await page.locator('#profile-form button[type="submit"]').click();
  assert.equal(await page.locator('.workspace strong').textContent(),'Hodowla Testowa');
@@ -65,7 +72,7 @@ const assert=require('assert/strict');
  assert.deepEqual(errors,[]);
  await page.locator('[data-language="en"]').click();
  assert.equal(await page.locator('html').getAttribute('lang'),'en');
- assert.equal(await page.locator('[data-contact="2"]').textContent(),'✉ Start a demo conversation');
+ assert.equal(await page.locator('[data-contact="2"]').textContent(),'Contact the breeder');
  await page.locator('a[href="#search"]').first().click();
  await page.locator('#filters select[name="breed"]').selectOption('Brytyjski krótkowłosy');
  assert.equal(await page.locator('#search-results .cat-card').count(),1);
@@ -80,8 +87,19 @@ const assert=require('assert/strict');
  await page.locator('[data-add]').click();
  assert.equal(await page.locator('#dialog-title').textContent(),'Dodaj profil kota');
  await page.locator('#close-dialog').click();
+ for(const language of ['pl','en']){
+  await page.locator('[data-language="'+language+'"]').click();
+  for(const viewport of [{width:320,height:760},{width:390,height:844},{width:768,height:1024},{width:1440,height:1000}]){
+   await page.setViewportSize(viewport);
+   for(const route of ['dashboard','cats','search','messages','documents','settings','cat/2']){
+    await page.goto(url+'/#'+route);
+    const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
+    assert.ok(size.scroll<=size.viewport,'Overflow '+language+' '+route+' '+viewport.width+': '+JSON.stringify(size));
+   }
+  }
+ }
  assert.deepEqual(errors,[]);
- console.log('PASS: filtry, brak wyników, reset filtrów, profil, rozmowa, bezpieczne wyświetlanie tekstu, trwałość danych, dodanie kota, dostępność, ustawienia, reset demonstracji, 7 ekranów telefonu bez poziomego przewijania, brak błędów JS.');
+ console.log('PASS: filtry, brak wyników, reset filtrów, profil, rozmowa, bezpieczne wyświetlanie tekstu, trwałość danych, dodanie kota, dostępność, ustawienia, reset demonstracji, 7 ekranów w PL/EN przy 320, 390, 768 i 1440 px bez poziomego przewijania, brak błędów JS.');
 
  } finally { if(browser)await browser.close();await new Promise(resolve=>server.close(resolve)); }
 })().catch(error=>{console.error(error);process.exit(1)});
