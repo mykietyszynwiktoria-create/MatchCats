@@ -88,3 +88,5 @@ Open http://localhost:8080/ after starting the application. The JAR serves its i
 See [Frontend integration](docs/FRONTEND_INTEGRATION.md) for browser scenarios, account lifecycle, SMTP settings and release boundaries. Store packages and a public deployment are not included in this development build.
 
 Pair proposals now require an explicit recipient response. See [Pairing consent](docs/PAIRING_CONSENT.md) for migration, permissions and testing.
+
+Conversation unread counts persist per account. Bilingual 404/403/network/server views use native cat illustrations; see [Unread messages and errors](docs/UNREAD_AND_ERRORS.md).

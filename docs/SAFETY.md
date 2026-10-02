@@ -43,6 +43,6 @@ All routes require authentication. Mutating requests also require CSRF protectio
 
 ## Validation
 
-Six backend tests cover bidirectional blocks, saved-pair bypass attempts, ownership, CSRF, report privacy, forbidden moderator access, suspension/login restrictions, reinstatement/audit entries, limits and retention. The complete backend suite passes 37 tests.
+Six backend tests cover bidirectional blocks, saved-pair bypass attempts, ownership, CSRF, report privacy, forbidden moderator access, suspension/login restrictions, reinstatement/audit entries, limits and retention. The complete backend suite passes 40 tests.
 
 `npm run test:safety` runs a separate application on localhost port 8085 against a database whose URL must end in `/matchcats_test`. It creates its own temporary moderator, restarts that isolated server with the moderator ID, exercises real PL/EN interfaces and restores suspended test users before cleanup. Browser checks cover reporting, escaped evidence, blocking/unblocking, denied moderator access, session revocation, reinstatement and responsive safety screens. Temporary report evidence remains in the test database until expiry; it is never created in the development database by this runner. Existing demo/live browser checks also remain in CI.

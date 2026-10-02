@@ -30,6 +30,6 @@ Responses include `status`, `proposedBy`, `decidedAt`, `canDecide` and `canWithd
 
 ## Validation and boundaries
 
-The backend suite has 37 tests, including sender/recipient/outsider permissions, CSRF, state persistence, legacy records, changed cat availability, blocked acceptance and simultaneous conflicting decisions against PostgreSQL. Earlier safety-test assertions now isolate their own report IDs/account rather than assuming the shared test database is empty.
+The backend suite has 40 tests, including sender/recipient/outsider permissions, CSRF, state persistence, legacy records, changed cat availability, blocked acceptance and simultaneous conflicting decisions against PostgreSQL. Earlier safety-test assertions now isolate their own report IDs/account rather than assuming the shared test database is empty.
 
 `npm run test:live` now exercises actual proposal acceptance, withdrawal and decline with two temporary accounts, in addition to existing account/cat/document/chat scenarios. Layout checks cover ten authenticated routes in PL/EN at 320, 390, 768 and 1440 pixels. Tests delete only their explicitly created accounts. No email or push notifications are sent by this module; users refresh the proposal list manually. Native-device testing and production email, notifications, document verification and deployment remain release work.
