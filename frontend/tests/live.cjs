@@ -33,6 +33,7 @@ const passwords=[password,password];
     await page.locator('#register-form [type="submit"]').click();await page.getByRole('alert').filter({hasText:'jest już zajęty'}).waitFor();await go(page,'login');
    }
    await fill(page,'login-form',{username:usernames[i],password:'WrongPassword!'});
+   if(i===0&&process.env.MATCHCATS_AUTH_SCREENSHOT)await page.screenshot({path:process.env.MATCHCATS_AUTH_SCREENSHOT,fullPage:true});
    await page.locator('#login-form [type="submit"]').click();
    await page.getByRole('alert').filter({hasText:'Nieprawidłowy login lub hasło'}).waitFor();
    await page.locator('#login-form [name="password"]').fill(password);
@@ -83,7 +84,13 @@ const passwords=[password,password];
   await bob.locator('#live-message-form [name="text"]').fill('<img src=x onerror=alert(1)> Hello Alice');
   await bob.locator('#live-message-form [type="submit"]').click();
   await bob.locator('.bubble.mine').waitFor();assert.equal(await bob.locator('.bubble img').count(),0);
+  await go(alice,'dashboard');await alice.locator('[data-unread-total]:not([hidden])').waitFor();
+  assert.equal(await alice.locator('[data-unread-total]').innerText(),'1');
+  await alice.reload();await alice.locator('[data-unread-total]:not([hidden])').waitFor();
+  assert.equal((await alice.request.get(url+'/chats/unread').then(r=>r.json())).unreadMessages,1,'Read state must survive reload');
   await go(alice,'messages');await alice.locator('.bubble').filter({hasText:'Hello Alice'}).waitFor();
+  await alice.locator('[data-unread-total][hidden]').waitFor({state:'attached'});
+  assert.equal((await alice.request.get(url+'/chats/unread').then(r=>r.json())).unreadMessages,0);
   await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+bobCat+'"]').click();
   await alice.locator('#live-message-form').waitFor();
   await go(alice,'proposals');
@@ -118,6 +125,23 @@ const passwords=[password,password];
    }
   }
   await alice.setViewportSize({width:1440,height:1000});
+  for(const language of ['en','pl']) {
+   await alice.locator('[data-language="'+language+'"]').click();
+   for(const width of [320,390,768,1440]) {
+    await alice.setViewportSize({width,height:1000});
+    await go(alice,'this-page-does-not-exist');await alice.locator('[data-error-kind="404"] .error-cat').waitFor();
+    assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'404 overflow '+language+' '+width);
+   }
+  }
+  await alice.setViewportSize({width:1440,height:1000});
+  await go(alice,'cat/999999999');await alice.locator('[data-error-kind="404"]').waitFor();
+  if(process.env.MATCHCATS_ERROR_SCREENSHOT){await alice.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await alice.screenshot({path:process.env.MATCHCATS_ERROR_SCREENSHOT,fullPage:true});}
+  await alice.route('**/cats?*',route=>route.fulfill({status:503,contentType:'application/json',body:'{"code":"SERVICE_UNAVAILABLE"}'}));
+  await go(alice,'search');await alice.locator('[data-error-kind="server"]').waitFor();
+  await alice.unroute('**/cats?*');await alice.locator('[data-refresh]').click();await alice.locator('#live-search').waitFor();
+  await alice.route('**/cats?*',route=>route.abort());await go(alice,'search');await alice.locator('[data-error-kind="network"] .error-cat').waitFor();
+  if(process.env.MATCHCATS_NETWORK_SCREENSHOT){await alice.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await alice.screenshot({path:process.env.MATCHCATS_NETWORK_SCREENSHOT,fullPage:true});}
+  await alice.unroute('**/cats?*');await alice.locator('[data-refresh]').click();await alice.locator('#live-search').waitFor();
   await go(alice,'cats');await alice.locator('.cat-card').filter({hasText:'Alice Cat'}).waitFor();
   assert.equal(await alice.locator('.cat-card').filter({hasText:'Bob Cat'}).count(),0);
   await go(alice,'edit-cat/'+bobCat);await alice.getByRole('alert').waitFor();
