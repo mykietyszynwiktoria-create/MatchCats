@@ -42,3 +42,9 @@ button:disabled { cursor:wait; opacity:.6; }
   body.signed-out .app-shell { padding-bottom:0; }
   .live-tools .button { flex:1; }
 }
+
+.proposal-card { margin:18px 0; }
+.proposal-status { font-weight:650; color:#155dcc; }
+.proposal-card .live-tools { flex-wrap:wrap; }
+.proposal-card .button, .panel > .button { white-space:normal; max-width:100%; }
+.proposal-card p { overflow-wrap:anywhere; }

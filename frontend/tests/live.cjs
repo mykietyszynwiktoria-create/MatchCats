@@ -86,11 +86,33 @@ const passwords=[password,password];
   await go(alice,'messages');await alice.locator('.bubble').filter({hasText:'Hello Alice'}).waitFor();
   await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+bobCat+'"]').click();
   await alice.locator('#live-message-form').waitFor();
+  await go(alice,'proposals');
+  const proposal=alice.locator('.proposal-card').filter({hasText:'#'+bobCat});
+  await proposal.waitFor();
+  const proposalId=await proposal.getAttribute('data-proposal-id');
+  assert.equal(await proposal.getAttribute('data-proposal-status'),'PENDING');
+  assert.equal(await proposal.locator('[data-proposal-action="ACCEPT"]').count(),0,'Sender must not approve their own request');
+  bob.on('dialog',dialog=>dialog.accept());alice.on('dialog',dialog=>dialog.accept());
+  await go(bob,'proposals');
+  await bob.locator('[data-proposal="'+proposalId+'"][data-proposal-action="ACCEPT"]').click();
+  await bob.locator('[data-proposal-id="'+proposalId+'"][data-proposal-status="ACCEPTED"]').waitFor();
+  await go(alice,'proposals');
+  await alice.locator('[data-proposal="'+proposalId+'"][data-proposal-action="WITHDRAW"]').click();
+  await alice.locator('[data-proposal-id="'+proposalId+'"][data-proposal-status="WITHDRAWN"]').waitFor();
+  await go(bob,'proposals');
+  assert.equal(await bob.locator('[data-proposal="'+proposalId+'"]').count(),0,'Withdrawn proposal must not offer acceptance');
+  const csrfToken=await bob.request.get(url+'/auth/csrf').then(r=>r.json());
+  const secondResponse=await bob.request.post(url+'/cats',{headers:{[csrfToken.headerName]:csrfToken.token},data:{name:'Second Bob Cat',breed:'Maine Coon',sex:'MALE',health:'HEALTHY',birthDate:'2022-01-01',city:'Warsaw',country:'Poland',description:'',available:true}});
+  assert.equal(secondResponse.status(),201);const secondCat=await secondResponse.json();
+  await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+secondCat.id+'"]').click();await alice.locator('#live-message-form').waitFor();
+  await go(bob,'proposals');await bob.locator('[data-proposal-action="DECLINE"]').click();
+  await bob.locator('[data-proposal-status="DECLINED"]').waitFor();
+  if(process.env.MATCHCATS_PROPOSAL_SCREENSHOT)await bob.screenshot({path:process.env.MATCHCATS_PROPOSAL_SCREENSHOT,fullPage:true});
   for(const language of ['en','pl']) {
    await alice.locator('[data-language="'+language+'"]').click();
    for(const width of [320,390,768,1440]) {
     await alice.setViewportSize({width,height:1000});
-    for(const route of ['dashboard','cats','search','messages','documents','settings','cat/'+aliceCat,'edit-cat/'+aliceCat,'candidates/'+aliceCat]) {
+    for(const route of ['dashboard','cats','search','messages','documents','settings','proposals','cat/'+aliceCat,'edit-cat/'+aliceCat,'candidates/'+aliceCat]) {
      await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Live overflow '+route+' '+language+' '+width);
     }
    }
