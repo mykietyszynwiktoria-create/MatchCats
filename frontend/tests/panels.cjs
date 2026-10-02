@@ -5,7 +5,7 @@ const assert=require('assert/strict');
  const fs=require('fs');
  const http=require('http');
  const root=path.resolve(__dirname,'..');
- const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/sky-garden.css':'sky-garden.css','/app.js':'app.js','/i18n.js':'i18n.js','/assets/sky-hero.jpg':'assets/sky-hero.jpg','/assets/sky-portraits.jpg':'assets/sky-portraits.jpg'};
+ const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/sky-garden.css':'sky-garden.css','/app.js':'app.js','/api.js':'api.js','/live.js':'live.js','/live.css':'live.css','/i18n.js':'i18n.js','/assets/sky-hero.jpg':'assets/sky-hero.jpg','/assets/sky-portraits.jpg':'assets/sky-portraits.jpg'};
  const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.jpg':'image/jpeg'};
  const server=http.createServer((req,res)=>{
   const file=allowed[new URL(req.url,'http://localhost').pathname];
@@ -14,7 +14,7 @@ const assert=require('assert/strict');
   res.end(fs.readFileSync(path.join(root,file)));
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- const url='http://127.0.0.1:'+server.address().port;
+ const url='http://127.0.0.1:'+server.address().port+'/?demo=1';
  let browser;
  try {
  browser=await chromium.launch({...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{}),headless:true});
@@ -25,10 +25,10 @@ const assert=require('assert/strict');
  await page.locator('#dashboard-search select[name="sex"]').selectOption('MALE');
  await page.locator('#dashboard-search input[name="city"]').fill('Kraków');
  await page.locator('#dashboard-search button').click();
- await page.waitForURL('**/#search');
+ await page.waitForURL('**#search');
  assert.equal(await page.locator('#filters input[name="city"]').inputValue(),'Kraków');
  assert.equal(await page.locator('#search-results .cat-card').count(),1);
- await page.goto(url+'/#dashboard');
+ await page.goto(url+'#dashboard');
  assert.equal(await page.locator('.quick-action').count(),3);
  await page.locator('.quick-action[href="#cats"]').click();
  assert.equal(await page.locator('.cat-card').count(),2);
@@ -74,7 +74,7 @@ const assert=require('assert/strict');
  await page.locator('a[href="#dashboard"]').first().click();
  await page.setViewportSize({width:390,height:844});
  for(const route of ['dashboard','cats','search','messages','documents','settings','cat/2']){
-  await page.goto(url+'/#'+route);
+  await page.goto(url+'#'+route);
   const width=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
   assert.ok(width.scroll<=width.viewport,`Horizontal overflow ${route}: ${JSON.stringify(width)}`);
  }
@@ -101,7 +101,7 @@ const assert=require('assert/strict');
   for(const viewport of [{width:320,height:760},{width:390,height:844},{width:768,height:1024},{width:1440,height:1000}]){
    await page.setViewportSize(viewport);
    for(const route of ['dashboard','cats','search','messages','documents','settings','cat/2']){
-    await page.goto(url+'/#'+route);
+    await page.goto(url+'#'+route);
     const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
     assert.ok(size.scroll<=size.viewport,'Overflow '+language+' '+route+' '+viewport.width+': '+JSON.stringify(size));
    }

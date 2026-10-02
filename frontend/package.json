@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "Bilingual MatchCats breeder panel prototype",
-  "scripts": { "test": "node tests/panels.cjs" },
+  "scripts": { "test": "node tests/panels.cjs", "test:live": "node tests/live.cjs" },
   "devDependencies": { "playwright": "1.62.1" }
 }

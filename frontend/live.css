@@ -1,0 +1,33 @@
+.auth-layout { display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:start; max-width:1000px; margin:25px auto; }
+.auth-intro { padding:35px 20px; }
+.auth-intro h1 { font-size:42px; line-height:1.12; letter-spacing:-1px; }
+.auth-intro img { width:100%; border-radius:24px; margin-top:25px; }
+.auth-panel { padding:30px; background:white; border-radius:26px; border:1px solid #d5e5f5; }
+.auth-panel h1 { font-size:28px; margin-bottom:10px; }
+.auth-panel label { margin-top:16px; }
+.auth-panel .button { width:100%; margin-top:20px; }
+.auth-panel .auth-link { display:block; margin-top:18px; color:#075ecb; text-align:center; }
+.live-error { color:#9b2730; background:#fff0f1; border:1px solid #efc6ca; border-radius:12px; padding:13px; margin:16px 0; white-space:pre-line; }
+.live-success { color:#185c42; background:#e8f7ef; padding:13px; border-radius:12px; margin:16px 0; }
+.live-tools { display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; }
+.live-form { max-width:700px; }
+.live-form label { margin:16px 0; }
+.live-page { margin-top:20px; }
+.live-loading { padding:35px; text-align:center; }
+.live-file-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:16px 0; border-bottom:1px solid #d5e5f5; }
+.live-file-row strong { flex:1; overflow-wrap:anywhere; }
+.live-caption { font-size:12px; margin:14px 0; }
+.live-pages { display:flex; justify-content:space-between; gap:12px; margin:20px 0; }
+.live-photo-empty { display:grid; place-items:center; min-height:180px; font-size:50px; color:#4e7599; background:#e4f1fe; }
+body.signed-out #navigation, body.signed-out #top-profile, body.signed-out .topbar { display:none; }
+body.signed-out .sidebar { justify-content:space-between; }
+button:disabled { cursor:wait; opacity:.6; }
+@media(max-width:640px) {
+  .auth-layout { grid-template-columns:1fr; margin:0; gap:15px; }
+  .auth-intro { padding:5px 4px; }
+  .auth-intro h1 { font-size:30px; }
+  .auth-intro img { display:none; }
+  .auth-panel { padding:23px; }
+  body.signed-out .app-shell { padding-bottom:0; }
+  .live-tools .button { flex:1; }
+}

@@ -1,0 +1,86 @@
+const {chromium}=require('playwright');
+const assert=require('assert/strict');
+const fs=require('fs'),path=require('path');
+const url=process.env.MATCHCATS_TEST_URL||'http://127.0.0.1:8084';
+if(!['localhost','127.0.0.1'].includes(new URL(url).hostname))throw Error('Use an isolated local test server.');
+const suffix=Date.now().toString(36), usernames=['uie2e'+suffix+'a','uie2e'+suffix+'b'];
+const password='TemporaryTestPassword!';
+(async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
+ const errors=[],contexts=[];
+ const go=async(page,route)=>{const target=url+'/#'+route;if(page.url()===target)await page.reload();else await page.goto(target);await page.locator('.live-loading').waitFor({state:'hidden'});};
+ const fill=async(page,form,values)=>{for(const [name,value] of Object.entries(values))await page.locator('#'+form+' [name="'+name+'"]').fill(value);};
+ try{
+  for(let i=0;i<2;i++){
+   const context=await browser.newContext();contexts.push(context);const page=await context.newPage();
+   page.on('pageerror',e=>errors.push(e.message));
+   await go(page,'register');
+   await fill(page,'register-form',{username:usernames[i],email:usernames[i]+'@example.test',firstName:i?'Bob':'Alice',surname:'Test',password,confirm:'Mismatch'});
+   await page.locator('#register-form [type="submit"]').click();
+   await page.getByRole('alert').filter({hasText:'Hasła nie są takie same'}).waitFor();
+   await page.locator('#register-form [name="confirm"]').fill(password);
+   await page.locator('#register-form [type="submit"]').click();
+   await page.locator('#login-form').waitFor();
+   await fill(page,'login-form',{username:usernames[i],password:'WrongPassword!'});
+   await page.locator('#login-form [type="submit"]').click();
+   await page.getByRole('alert').filter({hasText:'Nieprawidłowy login lub hasło'}).waitFor();
+   await page.locator('#login-form [name="password"]').fill(password);
+   await page.locator('#login-form [type="submit"]').click();
+   await page.locator('#breeder-form').waitFor();
+   await fill(page,'breeder-form',{kennel:'UI Test '+i,city:'Warsaw',country:'Poland'});
+   await page.locator('#breeder-form [type="submit"]').click();
+   await page.locator('#breeder-form [type="submit"]:enabled').waitFor();
+   await go(page,'new-cat');
+   await fill(page,'live-cat-form',{name:i?'Bob Cat':'Alice Cat',breed:'Maine Coon',birthDate:'2022-01-01'});
+   await page.locator('#live-cat-form [name="sex"]').selectOption(i?'MALE':'FEMALE');
+   await page.locator('#live-cat-form [name="health"]').selectOption('HEALTHY');
+   await page.locator('#live-cat-form [name="available"]').check();
+   await page.locator('#live-cat-form [type="submit"]').click();
+   await page.waitForURL('**/#cat/*');
+   await page.locator('.detail-box').waitFor();
+  }
+  const alice=contexts[0].pages()[0],bob=contexts[1].pages()[0];
+  const aliceCat=alice.url().split('/').at(-1),bobCat=bob.url().split('/').at(-1);
+  await go(alice,'documents/'+aliceCat);
+  await alice.locator('[name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
+  await alice.locator('#document-upload [type="submit"]').click();
+  await alice.locator('[data-download]').waitFor();
+  await go(bob,'cat/'+aliceCat);
+  assert.equal(await bob.locator('[data-download]').count(),0,'Private document leaked');
+  await go(alice,'documents/'+aliceCat);
+  await alice.locator('[data-share]').click();
+  await alice.locator('[data-visibility="PRIVATE"]').waitFor();
+  await go(bob,'cat/'+aliceCat);
+  await bob.locator('[data-download]').waitFor();
+  const download=await Promise.all([bob.waitForEvent('download'),bob.locator('[data-download]').click()]);
+  assert.ok(download[0].suggestedFilename().endsWith('.jpg'));
+  await bob.locator('[data-contact]').click();await bob.locator('#live-message-form').waitFor();
+  await bob.locator('#live-message-form [name="text"]').fill('<img src=x onerror=alert(1)> Hello Alice');
+  await bob.locator('#live-message-form [type="submit"]').click();
+  await bob.locator('.bubble.mine').waitFor();assert.equal(await bob.locator('.bubble img').count(),0);
+  await go(alice,'messages');await alice.locator('.bubble').filter({hasText:'Hello Alice'}).waitFor();
+  await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+bobCat+'"]').click();
+  await alice.locator('#live-message-form').waitFor();
+  await go(alice,'cats');await alice.locator('.cat-card').filter({hasText:'Alice Cat'}).waitFor();
+  assert.equal(await alice.locator('.cat-card').filter({hasText:'Bob Cat'}).count(),0);
+  await go(alice,'edit-cat/'+bobCat);await alice.getByRole('alert').waitFor();
+  await go(alice,'settings');await alice.locator('[data-logout]').click();await alice.locator('#login-form').waitFor();
+  await fill(alice,'login-form',{username:usernames[0],password});await alice.locator('#login-form [type="submit"]').click();
+  await alice.locator('#navigation a').first().waitFor();
+  await contexts[0].clearCookies();await alice.locator('#navigation a[href="#cats"]').click();
+  await alice.locator('#login-form').waitFor();
+  await alice.locator('[data-language="en"]').click();await alice.getByRole('heading',{name:'Sign in',exact:true}).waitFor();
+  for(const width of [320,390,768,1440]){await alice.setViewportSize({width,height:1000});for(const route of ['login','register']){await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Overflow '+route+' '+width);}}
+  await alice.route('**/auth/csrf',route=>route.abort());
+  await go(alice,'login');await fill(alice,'login-form',{username:usernames[0],password});await alice.locator('#login-form [type="submit"]').click();
+  await alice.getByRole('alert').filter({hasText:'Cannot reach the server'}).waitFor();
+  assert.deepEqual(errors,[]);
+  console.log('PASS: real registration, password mismatch, invalid credentials, sessions, profiles, cats, private/shared documents, download, conversations, escaping, proposals, ownership, logout, expiry, PL/EN, auth layout, network errors.');
+ }catch(error){
+  for(const context of contexts)for(const page of context.pages())console.error('DIAGNOSTIC',page.url(),await page.locator('#main').innerText());
+  throw error;
+ }finally{
+  fs.writeFileSync(process.env.MATCHCATS_TEST_MANIFEST||path.join(require('os').tmpdir(),'matchcats-live-accounts-'+suffix+'.json'),JSON.stringify({usernames}));
+  await browser.close();
+ }
+})().catch(e=>{console.error(e);process.exitCode=1;});
