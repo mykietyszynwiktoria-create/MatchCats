@@ -39,7 +39,8 @@ public class SecurityConfig {
         cors.setAllowedHeaders(List.of("Content-Type","X-CSRF-TOKEN")); cors.setAllowCredentials(true);
         var source = new UrlBasedCorsConfigurationSource();source.registerCorsConfiguration("/**", cors);return source;
     }
-    @Bean SecurityFilterChain security(HttpSecurity http, SecurityContextRepository repository) throws Exception {
+    @Bean SecurityFilterChain security(HttpSecurity http, SecurityContextRepository repository, AccountRepository accounts) throws Exception {
+        http.addFilterAfter(new SessionVersionFilter(accounts), org.springframework.security.web.context.SecurityContextHolderFilter.class);
         http.cors(c -> {}).securityContext(c -> c.securityContextRepository(repository))
             .authorizeHttpRequests(a -> a
                 .requestMatchers(HttpMethod.GET, "/health", "/auth/csrf", "/", "/index.html",

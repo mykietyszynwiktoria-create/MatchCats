@@ -20,6 +20,8 @@ public class AccountService {
         @JsonAlias("firstname") @NotBlank @Size(max=80) String firstName,
         @NotBlank @Size(max=80) String surname) {}
     public record UserView(Integer id, String username, String email, String firstName, String surname) {}
+    public record PasswordChange(@NotBlank String currentPassword, @NotBlank @Size(min=8,max=72) String newPassword) {}
+    public record DeleteAccount(@NotBlank String currentPassword) {}
     public record ProfileInput(@NotBlank @Email @Size(max=254) String email,
                                @NotBlank @Size(max=80) String firstName,
                                @NotBlank @Size(max=80) String surname) {}
@@ -56,5 +58,18 @@ public class AccountService {
     }
     public UserView view(Account account) {
         return new UserView(account.id, account.username, account.email, account.firstName, account.surname);
+    }
+    private void verify(Account account,String password) {
+        if(password.getBytes(StandardCharsets.UTF_8).length>72 || !passwords.matches(password,account.passwordHash))
+            throw new ApiException(HttpStatus.BAD_REQUEST,"INVALID_CURRENT_PASSWORD","Current password is incorrect");
+    }
+    @Transactional public void changePassword(Authentication auth,PasswordChange input) {
+        Account account=current(auth);verify(account,input.currentPassword());
+        if(input.newPassword().getBytes(StandardCharsets.UTF_8).length>72)throw ApiException.invalid("Password must not exceed 72 UTF-8 bytes");
+        account.passwordHash=passwords.encode(input.newPassword());account.securityVersion++;
+        accounts.saveAndFlush(account);
+    }
+    @Transactional public void delete(Authentication auth,DeleteAccount input) {
+        Account account=current(auth);verify(account,input.currentPassword());accounts.delete(account);accounts.flush();
     }
 }

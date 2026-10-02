@@ -21,6 +21,30 @@ class AccountApiTests {
     @Autowired MockMvc mvc;
     @Autowired AccountRepository accounts;
     @Autowired ObjectMapper json;
+    @Test void changingPasswordInvalidatesOtherSessionsAndDeletionRequiresPassword() throws Exception {
+        mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("securitytest"))).andExpect(status().isCreated());
+        String credentials="{\"username\":\"securitytest\",\"password\":\"StrongTestPassword!\"}";
+        var first=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        var second=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        mvc.perform(post("/users/me/password").session(first).with(csrf()).contentType("application/json")
+            .content("{\"currentPassword\":\"wrong\",\"newPassword\":\"NewStrongPassword!\"}"))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_CURRENT_PASSWORD"));
+        mvc.perform(post("/users/me/password").session(first).with(csrf()).contentType("application/json")
+            .content("{\"currentPassword\":\"StrongTestPassword!\",\"newPassword\":\"NewStrongPassword!\"}"))
+            .andExpect(status().isNoContent());
+        assertTrue(first.isInvalid());
+        mvc.perform(get("/users/me").session(second)).andExpect(status().isUnauthorized());assertTrue(second.isInvalid());
+        mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials)).andExpect(status().isUnauthorized());
+        var latest=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json")
+            .content("{\"username\":\"securitytest\",\"password\":\"NewStrongPassword!\"}"))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        mvc.perform(delete("/users/me").session(latest).with(csrf()).contentType("application/json").content("{\"currentPassword\":\"wrong\"}"))
+            .andExpect(status().isBadRequest());assertTrue(accounts.existsByUsername("securitytest"));
+        mvc.perform(delete("/users/me").session(latest).with(csrf()).contentType("application/json").content("{\"currentPassword\":\"NewStrongPassword!\"}"))
+            .andExpect(status().isNoContent());assertFalse(accounts.existsByUsername("securitytest"));assertTrue(latest.isInvalid());
+    }
     String body(String username) throws Exception {
         return json.writeValueAsString(Map.of("username",username,"password","StrongTestPassword!","email",username+"@example.test","firstName","Test","surname","Breeder"));
     }

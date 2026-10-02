@@ -5,6 +5,7 @@ const url=process.env.MATCHCATS_TEST_URL||'http://127.0.0.1:8084';
 if(!['localhost','127.0.0.1'].includes(new URL(url).hostname))throw Error('Use an isolated local test server.');
 const suffix=Date.now().toString(36), usernames=['uie2e'+suffix+'a','uie2e'+suffix+'b'];
 const password='TemporaryTestPassword!';
+const passwords=[password,password];
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
  const errors=[],contexts=[];
@@ -70,12 +71,18 @@ const password='TemporaryTestPassword!';
   await go(alice,'settings');await alice.locator('[data-logout]').click();await alice.locator('#login-form').waitFor();
   await fill(alice,'login-form',{username:usernames[0],password});await alice.locator('#login-form [type="submit"]').click();
   await alice.locator('#navigation a').first().waitFor();
+  await go(alice,'settings');
+  await fill(alice,'password-form',{currentPassword:password,newPassword:'NewTemporaryPassword!',confirmPassword:'NewTemporaryPassword!'});
+  const changed=alice.waitForResponse(r=>r.url().endsWith('/users/me/password')&&r.status()===204);
+  await alice.locator('#password-form [type="submit"]').click();await changed;passwords[0]='NewTemporaryPassword!';
+  await alice.locator('#login-form').waitFor();
+  await fill(alice,'login-form',{username:usernames[0],password:passwords[0]});await alice.locator('#login-form [type="submit"]').click();await alice.locator('#navigation a').first().waitFor();
   await contexts[0].clearCookies();await alice.locator('#navigation a[href="#cats"]').click();
   await alice.locator('#login-form').waitFor();
   await alice.locator('[data-language="en"]').click();await alice.getByRole('heading',{name:'Sign in',exact:true}).waitFor();
   for(const width of [320,390,768,1440]){await alice.setViewportSize({width,height:1000});for(const route of ['login','register']){await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Overflow '+route+' '+width);}}
   await alice.route('**/auth/csrf',route=>route.abort());
-  await go(alice,'login');await fill(alice,'login-form',{username:usernames[0],password});await alice.locator('#login-form [type="submit"]').click();
+  await go(alice,'login');await fill(alice,'login-form',{username:usernames[0],password:passwords[0]});await alice.locator('#login-form [type="submit"]').click();
   await alice.getByRole('alert').filter({hasText:'Cannot reach the server'}).waitFor();
   assert.deepEqual(errors,[]);
   console.log('PASS: real registration, password mismatch, invalid credentials, sessions, profiles, cats, private/shared documents, download, conversations, escaping, proposals, ownership, logout, expiry, PL/EN, auth layout, network errors.');
@@ -84,6 +91,19 @@ const password='TemporaryTestPassword!';
   throw error;
  }finally{
   fs.writeFileSync(process.env.MATCHCATS_TEST_MANIFEST||path.join(require('os').tmpdir(),'matchcats-live-accounts-'+suffix+'.json'),JSON.stringify({usernames}));
+  for(let i=0;i<usernames.length;i++){
+   const context=await browser.newContext();
+   try{
+    const request=context.request;
+    let token=await (await request.get(url+'/auth/csrf')).json();
+    const login=await request.post(url+'/auth/login',{headers:{[token.headerName]:token.token},data:{username:usernames[i],password:passwords[i]}});
+    if(login.ok()){
+     token=await (await request.get(url+'/auth/csrf')).json();
+     const deleted=await request.delete(url+'/users/me',{headers:{[token.headerName]:token.token},data:{currentPassword:passwords[i]}});
+     assert.equal(deleted.status(),204,'Temporary account cleanup failed');
+    }
+   }finally{await context.close();}
+  }
   await browser.close();
  }
 })().catch(e=>{console.error(e);process.exitCode=1;});
