@@ -32,10 +32,14 @@ POST /auth/password/request accepts email and language (pl/en). A configured ser
 
 ## Validation on 2 October 2026
 
-The local Java 21/PostgreSQL build passes 34 backend tests. Live browser scenarios exercise two independent accounts, photos, documents, messages, proposals, password changes, deletion and failure states. Layout checks cover nine authenticated routes in PL/EN at 320, 390, 768 and 1440 pixels plus four account/recovery screens. Demo regression checks cover seven routes in both languages at the same widths. These are browser tests, not physical-device/native-store tests.
+The local Java 21/PostgreSQL build passes 37 backend tests. Live browser scenarios exercise two independent accounts, photos, documents, messages, proposals, password changes, deletion and failure states. Layout checks cover ten authenticated routes in PL/EN at 320, 390, 768 and 1440 pixels plus four account/recovery screens. Demo regression checks cover seven routes in both languages at the same widths. These are browser tests, not physical-device/native-store tests.
 
 The Docker Compose configuration validates locally. Docker image build/start is not verified on this Windows host because its Docker daemon is unavailable. The JAR is built and running locally. GitHub CI includes backend and browser checks.
 
 ## Safety workflows
 
 Contact blocks, private profile/message reports, moderator decisions, account suspension/reinstatement and 90-day evidence retention are implemented. See [Safety operations](SAFETY.md) for assignment, permissions, cleanup and the dedicated end-to-end test. No moderator has been assigned to the development application until the owner confirms an existing account.
+
+## Mutual consent for proposals
+
+The Proposals inbox supports recipient acceptance/decline and withdrawal by either participant after acceptance. Earlier saved pairs need an explicit proposal and never acquire automatic consent. See [Pairing consent](PAIRING_CONSENT.md) for state transitions, migration, access rules and validation.

@@ -4,7 +4,7 @@ MatchCats helps pedigree cat breeders browse profiles and contact owners. The pr
 
 ## Current status
 
-- Frontend: PL/EN registration, login/recovery, settings, cat profiles/photos, search, private conversations, pairing proposals and document management connected to server APIs.
+- Frontend: PL/EN registration, login/recovery, settings, cat profiles/photos, search, private conversations, pair proposals with recipient consent/withdrawal and document management connected to server APIs.
 
 - Backend: session authentication, password changes/recovery, account deletion, login throttling, profiles, photos, matching, conversations and private/shared documents.
 
@@ -86,3 +86,5 @@ Published repository explanations and commit messages are English. Polish and En
 Open http://localhost:8080/ after starting the application. The JAR serves its interface and API together. Set SERVER_ADDRESS explicitly when deploying; local development defaults to 127.0.0.1. For a Docker development setup, run `docker compose up --build` after configuring `.env`; the app and PostgreSQL host ports are bound to localhost.
 
 See [Frontend integration](docs/FRONTEND_INTEGRATION.md) for browser scenarios, account lifecycle, SMTP settings and release boundaries. Store packages and a public deployment are not included in this development build.
+
+Pair proposals now require an explicit recipient response. See [Pairing consent](docs/PAIRING_CONSENT.md) for migration, permissions and testing.

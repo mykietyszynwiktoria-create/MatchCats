@@ -107,7 +107,7 @@ const passwords=[password,password];
   await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+secondCat.id+'"]').click();await alice.locator('#live-message-form').waitFor();
   await go(bob,'proposals');await bob.locator('[data-proposal-action="DECLINE"]').click();
   await bob.locator('[data-proposal-status="DECLINED"]').waitFor();
-  if(process.env.MATCHCATS_PROPOSAL_SCREENSHOT)await bob.screenshot({path:process.env.MATCHCATS_PROPOSAL_SCREENSHOT,fullPage:true});
+  if(process.env.MATCHCATS_PROPOSAL_SCREENSHOT){await bob.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await bob.screenshot({path:process.env.MATCHCATS_PROPOSAL_SCREENSHOT,fullPage:true});}
   for(const language of ['en','pl']) {
    await alice.locator('[data-language="'+language+'"]').click();
    for(const width of [320,390,768,1440]) {
