@@ -20,6 +20,8 @@ public class Account {
     public String surname;
     @JsonIgnore @Column(name="security_version", nullable=false)
     public long securityVersion;
+    @JsonIgnore @Column(nullable=false)
+    public boolean suspended;
     protected Account() {}
     public Account(String username, String hash, String email, String firstName, String surname) {
         this.username = username; this.passwordHash = hash; this.email = email;
