@@ -14,7 +14,7 @@ Use a dedicated local database for the live test. It creates accounts beginning 
 
 ## Release boundaries
 
-This is an integrated browser application, not a store package. Password recovery code, authenticated password changes, account deletion and revocation of earlier sessions are implemented. Email delivery is disabled until SMTP is configured. Email-address verification, abuse reporting/moderation, notifications, operational monitoring/backups and production deployment remain release work. Store developer accounts, a production host/domain and an email provider have not been configured. Use HTTPS and secure cookies in production. Uploaded documents remain owner-supplied, independently unverified files.
+This is an integrated browser application, not a store package. Password recovery code, authenticated password changes, account deletion and revocation of earlier sessions are implemented. Email delivery is disabled until SMTP is configured. Email-address verification, moderator assignment/operations, notifications, operational monitoring/backups and production deployment remain release work. Store developer accounts, a production host/domain and an email provider have not been configured. Use HTTPS and secure cookies in production. Uploaded documents remain owner-supplied, independently unverified files.
 
 ## Photos and account safety
 
@@ -32,6 +32,10 @@ POST /auth/password/request accepts email and language (pl/en). A configured ser
 
 ## Validation on 2 October 2026
 
-The local Java 21/PostgreSQL build passes 28 backend tests. Live browser scenarios exercise two independent accounts, photos, documents, messages, proposals, password changes, deletion and failure states. Layout checks cover nine authenticated routes in PL/EN at 320, 390, 768 and 1440 pixels plus four account/recovery screens. Demo regression checks cover seven routes in both languages at the same widths. These are browser tests, not physical-device/native-store tests.
+The local Java 21/PostgreSQL build passes 34 backend tests. Live browser scenarios exercise two independent accounts, photos, documents, messages, proposals, password changes, deletion and failure states. Layout checks cover nine authenticated routes in PL/EN at 320, 390, 768 and 1440 pixels plus four account/recovery screens. Demo regression checks cover seven routes in both languages at the same widths. These are browser tests, not physical-device/native-store tests.
 
 The Docker Compose configuration validates locally. Docker image build/start is not verified on this Windows host because its Docker daemon is unavailable. The JAR is built and running locally. GitHub CI includes backend and browser checks.
+
+## Safety workflows
+
+Contact blocks, private profile/message reports, moderator decisions, account suspension/reinstatement and 90-day evidence retention are implemented. See [Safety operations](SAFETY.md) for assignment, permissions, cleanup and the dedicated end-to-end test. No moderator has been assigned to the development application until the owner confirms an existing account.

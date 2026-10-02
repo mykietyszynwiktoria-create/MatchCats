@@ -10,7 +10,9 @@ MatchCats helps pedigree cat breeders browse profiles and contact owners. The pr
 
 - Database: PostgreSQL with Flyway migrations. Existing legacy records are not automatically migrated.
 
-- Outstanding: email-provider activation, email-address verification, moderation/reporting, notifications, production operations and Windows/Android/iOS store packages. Document uploads do not verify authenticity.
+- Safety: bidirectional contact blocks, private reports, restricted moderator review, account suspension/reinstatement and 90-day evidence retention. See [safety operations](docs/SAFETY.md). Moderator assignment is disabled until configured for an existing account.
+
+- Outstanding: email-provider activation, email-address verification, actual moderator assignment and operations, notifications, production operations and Windows/Android/iOS store packages. Document uploads do not verify authenticity.
 
 An owner-declared health status or profile is not independent verification of health, pedigree or breeding suitability.
 
