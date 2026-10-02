@@ -15,7 +15,10 @@ import java.util.*;
 @Service
 public class MatchingService {
     public record Selection(@NotNull @Positive Integer candidateId) {}
-    public record PairView(Long id, Integer firstCatId, Integer secondCatId, Long conversationId, Instant createdAt) {}
+    public enum Action { ACCEPT, DECLINE, WITHDRAW }
+    public record Decision(@NotNull Action action) {}
+    public record PairView(Long id, Integer firstCatId, Integer secondCatId, Long conversationId, Instant createdAt,
+        CatPair.Status status, Integer proposedBy, Instant decidedAt, boolean canDecide, boolean canWithdraw) {}
     private final CatService cats;
     private final CatRepository repository;
     private final CatPairRepository pairs;
@@ -86,17 +89,66 @@ public class MatchingService {
         CatPair pair = pairs.findByFirstCatIdAndSecondCatId(first, second).orElseGet(() -> {
             return pairs.saveAndFlush(new CatPair(first, second, chatId));
         });
-        return view(pair);
+        // A migrated, one-sided saved pair needs an explicit new proposal.
+        if (pair.proposedBy == null && pair.status == CatPair.Status.PENDING) pair.proposedBy = source.ownerId;
+        return view(pair, source.ownerId);
     }
 
     @Transactional(readOnly = true)
     public CatService.PageView<PairView> list(int sourceId, Authentication auth, int page, int size) {
-        cats.owned(sourceId, auth);
+        int owner = cats.owned(sourceId, auth).ownerId;
         var result = pairs.belongingTo(sourceId, page(page, size));
-        return new CatService.PageView<>(result.map(this::view).getContent(), result.getTotalElements(), page, size);
+        return new CatService.PageView<>(result.map(p -> view(p, owner)).getContent(), result.getTotalElements(), page, size);
     }
 
-    private PairView view(CatPair pair) {
-        return new PairView(pair.id, pair.firstCatId, pair.secondCatId, pair.conversationId, pair.createdAt);
+    @Transactional(readOnly = true)
+    public CatService.PageView<PairView> inbox(Authentication auth, int page, int size) {
+        int owner = cats.userId(auth);
+        var result = pairs.belongingToOwner(owner, page(page, size));
+        return new CatService.PageView<>(result.map(p -> view(p, owner)).getContent(), result.getTotalElements(), page, size);
+    }
+
+    @Transactional
+    public PairView decide(long id, Authentication auth, Decision input) {
+        int owner = cats.userId(auth);
+        // Read only IDs before locking, avoiding a stale managed pair after waiting.
+        var ids = pairs.catIds(id).orElseThrow(() -> ApiException.missing("Proposal"));
+        var locked = repository.lockCats(List.of(ids.getFirstCatId(), ids.getSecondCatId()));
+        Cat first = locked.stream().filter(c -> c.id.equals(ids.getFirstCatId())).findFirst()
+            .orElseThrow(() -> ApiException.missing("Cat"));
+        Cat second = locked.stream().filter(c -> c.id.equals(ids.getSecondCatId())).findFirst()
+            .orElseThrow(() -> ApiException.missing("Cat"));
+        if (!first.ownerId.equals(owner) && !second.ownerId.equals(owner)) throw ApiException.forbidden();
+        CatPair pair = pairs.findById(id).orElseThrow(() -> ApiException.missing("Proposal"));
+        boolean receiver = pair.proposedBy != null && !pair.proposedBy.equals(owner);
+        if (input.action() == Action.WITHDRAW) {
+            if (!(pair.status == CatPair.Status.ACCEPTED ||
+                (pair.status == CatPair.Status.PENDING && ownerEquals(pair.proposedBy, owner)))) throw conflict();
+            pair.status = CatPair.Status.WITHDRAWN;
+        } else {
+            if (!receiver) throw ApiException.forbidden();
+            if (pair.status != CatPair.Status.PENDING) throw conflict();
+            if (input.action() == Action.ACCEPT) {
+                available(first); available(second);
+                if (first.sex == second.sex || !first.breed.equalsIgnoreCase(second.breed))
+                    throw ApiException.invalid("The cats are no longer compatible");
+                // Recheck contact permissions under the same locks used by blocking.
+                chats.contact(first.ownerId.equals(owner) ? second.id : first.id, auth);
+                pair.status = CatPair.Status.ACCEPTED;
+            } else pair.status = CatPair.Status.DECLINED;
+        }
+        pair.decidedAt = Instant.now();
+        return view(pair, owner);
+    }
+
+    private boolean ownerEquals(Integer proposer, int owner) { return proposer != null && proposer.equals(owner); }
+    private ApiException conflict() {
+        return new ApiException(org.springframework.http.HttpStatus.CONFLICT, "PROPOSAL_CHANGED", "Refresh the proposal before deciding");
+    }
+    private PairView view(CatPair pair, int owner) {
+        boolean pending = pair.status == CatPair.Status.PENDING && pair.proposedBy != null;
+        return new PairView(pair.id, pair.firstCatId, pair.secondCatId, pair.conversationId, pair.createdAt,
+            pair.status, pair.proposedBy, pair.decidedAt, pending && !ownerEquals(pair.proposedBy, owner),
+            pair.status == CatPair.Status.ACCEPTED || (pending && ownerEquals(pair.proposedBy, owner)));
     }
 }

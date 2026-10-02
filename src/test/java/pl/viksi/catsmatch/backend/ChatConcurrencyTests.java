@@ -28,7 +28,7 @@ class ChatConcurrencyTests {
         simultaneousSelection(false);
     }
 
-    @Test void simultaneousPairSelectionCreatesOnlyOnePairAndConversation() throws Exception {
+    @Test void simultaneousPairSelectionAndRecipientDecisionsAreSerialized() throws Exception {
         simultaneousSelection(true);
     }
 
@@ -67,6 +67,23 @@ class ChatConcurrencyTests {
             if (selectPair) {
                 assertEquals(1, matches.list(catIds[0], owners[0], 0, 20).total());
                 assertEquals(1, matches.list(catIds[1], owners[1], 0, 20).total());
+                var pair = matches.list(catIds[0], owners[0], 0, 20).items().getFirst();
+                assertEquals(pl.viksi.catsmatch.backend.matching.CatPair.Status.PENDING, pair.status());
+                Authentication receiver = owners[pair.proposedBy().equals(createdAccounts.get(0)) ? 1 : 0];
+                CountDownLatch decide = new CountDownLatch(1);
+                List<Future<Integer>> decisions = new ArrayList<>();
+                for (var action : List.of(MatchingService.Action.ACCEPT, MatchingService.Action.DECLINE)) {
+                    decisions.add(workers.submit(() -> {
+                        decide.await();
+                        try { matches.decide(pair.id(), receiver, new MatchingService.Decision(action)); return 200; }
+                        catch (pl.viksi.catsmatch.backend.common.ApiException error) { return error.status.value(); }
+                    }));
+                }
+                decide.countDown();
+                List<Integer> results = new ArrayList<>();
+                for (var decision : decisions) results.add(decision.get(20, TimeUnit.SECONDS));
+                Collections.sort(results);
+                assertEquals(List.of(200, 409), results, "Only one competing response may commit");
             }
         } finally {
             workers.shutdownNow();
