@@ -47,9 +47,19 @@ Use Java 21 and an empty development PostgreSQL database. Set `DB_URL`, `DB_USER
 
 For tests, use a separate empty database and set `TEST_DB_URL`, `TEST_DB_USER` and `TEST_DB_PASSWORD`. Run `./gradlew test build`. Defaults target the isolated local test database at port 55432; tests are not intended to run against production data. Test methods roll back their fixtures, while Flyway schema migrations remain applied to that test database.
 
+## Private conversations
+
+`POST /cats/{catId}/contact` opens or reuses one conversation between the signed-in breeder and an available cat's owner. The caller must have a breeder profile. Self-contact and unavailable cats return 400. Both directions use the same ordered owner pair. Account row locks serialize simultaneous creation, and PostgreSQL also enforces a unique pair.
+
+`GET /chats` lists only the signed-in account's conversations. `GET /chats/{id}` and `GET /chats/{id}/messages` require participation; another account receives 403. Message history is ordered by ID ascending, with zero-based pages (default size 50, maximum 100). Conversation lists default to 20, newest ID first. All routes require authentication; writes also require CSRF.
+
+`POST /chats/{id}/messages` accepts `{ "text": "Hello" }` and returns 201. Text is required, cannot be blank and has a 4000-character maximum before trimming. The server derives the author from the authenticated account; submitted author IDs are ignored. Messages are stored in PostgreSQL, not browser storage. Clients must render text as plain text, never untrusted HTML. Responses contain participant IDs, context cat ID, timestamps and message data, without account emails or password hashes.
+
+Migration `V3__conversations_and_messages.sql` adds conversations/messages. Removing a cat clears the conversation's context reference and preserves its messages. This module does not implement real-time delivery, notifications, read receipts, blocking/reporting or attachments. Existing participants can continue an existing conversation even if a cat later becomes unavailable.
+
 ## Still outstanding
 
-Matching, persisted conversations, document uploads/permissions, password recovery, account lifecycle, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
+Matching, document uploads/permissions, password recovery, account lifecycle, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
 
 ## Verification for the profile module
 
