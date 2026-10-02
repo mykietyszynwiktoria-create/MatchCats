@@ -21,6 +21,15 @@ class AccountApiTests {
     @Autowired MockMvc mvc;
     @Autowired AccountRepository accounts;
     @Autowired ObjectMapper json;
+    @Test void emailChangesRequireCurrentPasswordAndNeverExposeIt() throws Exception {
+        mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("emailtest"))).andExpect(status().isCreated());
+        mvc.perform(put("/users/me").with(user("emailtest")).with(csrf()).contentType("application/json")
+            .content("{\"email\":\"new@example.test\",\"firstName\":\"Test\",\"surname\":\"Breeder\"}"))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_CURRENT_PASSWORD"));
+        mvc.perform(put("/users/me").with(user("emailtest")).with(csrf()).contentType("application/json")
+            .content("{\"email\":\"new@example.test\",\"firstName\":\"Test\",\"surname\":\"Breeder\",\"currentPassword\":\"StrongTestPassword!\"}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.email").value("new@example.test")).andExpect(jsonPath("$.currentPassword").doesNotExist());
+    }
     @Test void changingPasswordInvalidatesOtherSessionsAndDeletionRequiresPassword() throws Exception {
         mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("securitytest"))).andExpect(status().isCreated());
         String credentials="{\"username\":\"securitytest\",\"password\":\"StrongTestPassword!\"}";

@@ -2,7 +2,7 @@
 if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const api = MatchCatsAPI.request;
   const main = document.querySelector('#main');
-  let user = null, breeder = null, language = 'pl', revision = 0, flash = '', editingCat = null;
+  let user = null, breeder = null, language = 'pl', revision = 0, flash = '', flashRoute = '', editingCat = null;
   let searchFilters = {}, listPage = 0, chatPage = 0;
   try { language = localStorage.getItem('matchcats-language') === 'en' ? 'en' : 'pl'; } catch {}
   const t = (pl, en) => language === 'en' ? en : pl;
@@ -16,6 +16,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       NETWORK:t('Nie można połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie.','Cannot reach the server. Check your connection and try again.'),
       INVALID_CREDENTIALS:t('Nieprawidłowy login lub hasło.','Invalid username or password.'),
       INVALID_CURRENT_PASSWORD:t('Obecne hasło jest nieprawidłowe.','Your current password is incorrect.'),
+      INVALID_RESET_LINK:t('Link jest nieprawidłowy, wykorzystany lub wygasł. Poproś o nowy link.','This link is invalid, already used or expired. Request a new link.'),
+      EMAIL_UNAVAILABLE:t('Wysyłka e-maili nie jest jeszcze skonfigurowana lub jest chwilowo niedostępna. Spróbuj później.','Email delivery is not configured yet or is temporarily unavailable. Please try later.'),
       ACCOUNT_EXISTS:t('Login lub adres e-mail jest już zajęty.','Username or email is already registered.'),
       VALIDATION_FAILED:t('Sprawdź wymagane pola i ich poprawność.','Check the required fields and their values.'),
       INVALID_REQUEST:t('Dane nie spełniają wymagań. Sprawdź formularz.','The submitted data does not meet the requirements. Check the form.'),
@@ -28,10 +30,10 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     if (error.status === 429) return t('Zbyt wiele prób. Poczekaj chwilę i spróbuj ponownie.','Too many attempts. Wait a moment and try again.');
     return messages[error.code] || (error.status===404?messages.NOT_FOUND:t('Operacja nie powiodła się. Spróbuj ponownie później.','The operation failed. Please try again later.'));
   }
-  function showError(error) {
-    if(error.status===401 && user) { user=null;breeder=null;location.hash='login';render(t('Sesja wygasła. Zaloguj się ponownie.','Your session expired. Sign in again.'));return; }
-    let box=document.querySelector('#live-error');
-    if(!box) {box=document.createElement('div');box.id='live-error';box.className='live-error';box.setAttribute('role','alert');main.prepend(box);}
+  function showError(error,target=main) {
+    if(error.status===401 && user) { MatchCatsAPI.resetCSRF();user=null;breeder=null;location.hash='login';render(t('Sesja wygasła. Zaloguj się ponownie.','Your session expired. Sign in again.'));return; }
+    let box=target.querySelector('.live-error');
+    if(!box) {box=document.createElement('div');box.className='live-error';box.setAttribute('role','alert');target.prepend(box);}
     box.hidden=false;box.textContent=typeof error==='string'?error:message(error);
     box.tabIndex=-1;box.focus();
     if(error.fields) for(const name of Object.keys(error.fields)) {
@@ -57,18 +59,24 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   function auth(mode, notice='') {
     const register=mode==='register';
-    return `<div class="auth-layout"><section class="auth-intro"><h1>${t('Poznaj koty.<br>Poznaj ich hodowców.','Meet cats.<br>Meet their breeders.')}</h1><p class="muted">${t('Twoje koty, dokumenty i rozmowy w jednej przestrzeni.','Your cats, documents and conversations in one place.')}</p><img src="assets/sky-hero.jpg" alt=""><p class="live-caption">${t('Dekoracyjne zdjęcie wygenerowane dla MatchCats.','Decorative image generated for MatchCats.')}</p></section><section class="auth-panel"><h1>${register?t('Utwórz konto','Create an account'):t('Zaloguj się','Sign in')}</h1><p class="muted">${register?t('Dołącz do hodowców MatchCats.','Join MatchCats breeders.'):t('Witaj ponownie w swojej hodowli.','Welcome back to your cattery.')}</p>${notice?`<p class="live-success" role="status">${esc(notice)}</p>`:''}<form id="${register?'register':'login'}-form" novalidate>${formError}${field('username',t('Login','Username'),'text','','required minlength="3" maxlength="40" autocomplete="username" autocapitalize="none" spellcheck="false"')}${register?field('email',t('Adres e-mail','Email address'),'email','','required maxlength="254" autocomplete="email"')+field('firstName',t('Imię','First name'),'text','','required maxlength="80" autocomplete="given-name"')+field('surname',t('Nazwisko','Surname'),'text','','required maxlength="80" autocomplete="family-name"'):''}${field('password',t('Hasło','Password'),'password','','required '+(register?'minlength="8" maxlength="72" autocomplete="new-password"':'autocomplete="current-password"'))}${register?`<p class="muted live-caption">${t('Minimum 8 znaków. Maksymalnie 72 bajty UTF-8. Login: 3-40 liter, cyfr lub znaków . _ -','At least 8 characters. Maximum 72 UTF-8 bytes. Username: 3-40 letters, digits or . _ -') }</p>`+field('confirm',t('Powtórz hasło','Repeat password'),'password','','required autocomplete="new-password"'):''}<label class="check"><input type="checkbox" data-show-password>${t('Pokaż hasło','Show password')}</label><button class="button primary" type="submit">${register?t('Utwórz konto','Create account'):t('Zaloguj się','Sign in')}</button></form><a class="auth-link" href="#${register?'login':'register'}">${register?t('Mam już konto - zaloguj się','Already have an account? Sign in'):t('Nie masz konta? Zarejestruj się','No account? Register')}</a><a class="auth-link" href="/?demo=1">${t('Zobacz demonstrację bez konta','Explore the demo without an account')}</a></section></div>`;
+    return `<div class="auth-layout"><section class="auth-intro"><h1>${t('Poznaj koty.<br>Poznaj ich hodowców.','Meet cats.<br>Meet their breeders.')}</h1><p class="muted">${t('Twoje koty, dokumenty i rozmowy w jednej przestrzeni.','Your cats, documents and conversations in one place.')}</p><img src="assets/sky-hero.jpg" alt=""><p class="live-caption">${t('Dekoracyjne zdjęcie wygenerowane dla MatchCats.','Decorative image generated for MatchCats.')}</p></section><section class="auth-panel"><h1>${register?t('Utwórz konto','Create an account'):t('Zaloguj się','Sign in')}</h1><p class="muted">${register?t('Dołącz do hodowców MatchCats.','Join MatchCats breeders.'):t('Witaj ponownie w swojej hodowli.','Welcome back to your cattery.')}</p>${notice?`<p class="live-success" role="status">${esc(notice)}</p>`:''}<form id="${register?'register':'login'}-form" novalidate>${formError}${field('username',t('Login','Username'),'text','','required minlength="3" maxlength="40" autocomplete="username" autocapitalize="none" spellcheck="false"')}${register?field('email',t('Adres e-mail','Email address'),'email','','required maxlength="254" autocomplete="email"')+field('firstName',t('Imię','First name'),'text','','required maxlength="80" autocomplete="given-name"')+field('surname',t('Nazwisko','Surname'),'text','','required maxlength="80" autocomplete="family-name"'):''}${field('password',t('Hasło','Password'),'password','','required '+(register?'minlength="8" maxlength="72" autocomplete="new-password"':'autocomplete="current-password"'))}${register?`<p class="muted live-caption">${t('Minimum 8 znaków. Maksymalnie 72 bajty UTF-8. Login: 3-40 liter, cyfr lub znaków . _ -','At least 8 characters. Maximum 72 UTF-8 bytes. Username: 3-40 letters, digits or . _ -') }</p>`+field('confirm',t('Powtórz hasło','Repeat password'),'password','','required autocomplete="new-password"'):''}<label class="check"><input type="checkbox" data-show-password>${t('Pokaż hasło','Show password')}</label><button class="button primary" type="submit">${register?t('Utwórz konto','Create account'):t('Zaloguj się','Sign in')}</button></form><a class="auth-link" href="#${register?'login':'register'}">${register?t('Mam już konto - zaloguj się','Already have an account? Sign in'):t('Nie masz konta? Zarejestruj się','No account? Register')}</a>${register?'':`<a class="auth-link" href="#forgot">${t('Nie pamiętasz hasła?','Forgot your password?')}</a>`}<a class="auth-link" href="/?demo=1">${t('Zobacz demonstrację bez konta','Explore the demo without an account')}</a></section></div>`;
   }
   async function render(notice='') {
-    if(notice) flash=notice;
     const ownRevision=++revision;
     const [route='dashboard',id]=location.hash.slice(1).split('/');shell(route);
-    if(!user){ main.innerHTML=auth(route==='register'?'register':'login',flash);return; }
+    if(notice){flash=notice;flashRoute=route;}else if(flashRoute!==route)flash='';
+    if(route==='forgot' || route==='reset') {document.body.classList.add('signed-out');main.innerHTML=recoveryForm(route,id);activateForms();return;}
+    if(!user){ main.innerHTML=auth(route==='register'?'register':'login',flash);activateForms();return; }
     main.innerHTML=`<div class="live-loading" role="status">${t('Wczytywanie…','Loading…')}</div>`;
     try {
       const result=await view(route,id);
-      if(ownRevision===revision) main.innerHTML=result;
+      if(ownRevision===revision) {main.innerHTML=result;activateForms();}
     } catch(error) { if(ownRevision===revision){main.innerHTML=button(t('Spróbuj ponownie','Try again'),route);showError(error);} }
+  }
+  function activateForms(){main.querySelectorAll('form').forEach(form=>form.noValidate=true);}
+  function recoveryForm(route,token) {
+    const reset=route==='reset';
+    return `<section class="auth-panel live-form" style="margin:30px auto">${title(reset?t('Ustaw nowe hasło','Set a new password'):t('Nie pamiętasz hasła?','Forgot your password?'))}<p>${reset?t('Link działa przez 15 minut i można użyć go tylko raz.','The link is valid for 15 minutes and can only be used once.'):t('Podaj adres e-mail konta. Jeśli konto istnieje, wyślemy link do zmiany hasła.','Enter your account email. If an account exists, we will send a password reset link.')}</p>${flash?`<p class="live-success" role="status">${esc(flash)}</p>`:''}<form id="${reset?'reset-password':'forgot-password'}-form" data-token="${esc(token||'')}">${formError}${reset?field('password',t('Nowe hasło','New password'),'password','','required minlength="8" maxlength="72" autocomplete="new-password"')+field('confirm',t('Powtórz hasło','Repeat password'),'password','','required autocomplete="new-password"'):field('email',t('Adres e-mail','Email address'),'email','','required maxlength="254" autocomplete="email"')}<button class="button primary" type="submit">${reset?t('Zapisz nowe hasło','Save new password'):t('Wyślij link','Send link')}</button></form><a class="auth-link" href="#login">${t('Wróć do logowania','Back to sign-in')}</a></section>`;
   }
   async function view(route,id) {
     if(!breeder && route!=='settings') return title(t('Uzupełnij swoją hodowlę','Complete your cattery'))+`<section class="panel"><p>${t('Zapisz informacje o hodowli, zanim dodasz kota lub skontaktujesz się z innym hodowcą.','Save your cattery information before adding a cat or contacting another breeder.')}</p>${button(t('Uzupełnij profil','Complete profile'),'settings')}</section>`;
@@ -136,7 +144,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     return title(t('Rozmowy','Conversations'),t('Wiadomości zapisują się na serwerze. Odśwież rozmowę, aby zobaczyć nowe odpowiedzi.','Messages are stored on the server. Refresh the conversation to see new replies.'))+`<section class="chat-layout"><div class="chat-list">${list.items.map(c=>`<a class="conversation-row ${c.id===chat?.id?'selected':''}" href="#messages/${c.id}"><span class="initials">${esc(names.get(c.id)?.slice(0,1))}</span><strong>${esc(names.get(c.id))}</strong></a>`).join('')||t('Brak rozmów. Otwórz profil kota, aby skontaktować się z hodowcą.','No conversations. Open a cat profile to contact a breeder.')}</div><div class="chat-pane">${chat?`<div class="chat-header"><strong>${esc(names.get(chat.id)||t('Rozmowa','Conversation'))}</strong><button type="button" class="button secondary" data-refresh>${t('Odśwież','Refresh')}</button></div><div class="messages" role="log">${history.items.map(m=>`<div class="bubble ${m.authorId===user.id?'mine':''}">${esc(m.text)}<small>${esc(new Date(m.createdAt).toLocaleString(language==='pl'?'pl-PL':'en-GB'))}</small></div>`).join('')||t('Przywitaj się z hodowcą.','Say hello to the breeder.')}</div><form id="live-message-form" class="chat-compose" data-chat-id="${chat.id}"><input name="text" required maxlength="4000" aria-label="${t('Treść wiadomości','Message text')}" placeholder="${t('Napisz wiadomość…','Write a message…')}"><button class="button primary" type="submit">${t('Wyślij','Send')}</button></form>`:''}</div></section>`+(history?pager(history,'messages'):'')+pager(list,'cats');
   }
   function settings() {
-    return title(t('Twoje konto i hodowla','Your account and cattery'))+`<form id="breeder-form" class="panel live-form"><h2>${t('Profil hodowli','Cattery profile')}</h2>${formError}${field('kennel',t('Nazwa hodowli','Cattery name'),'text',breeder?.kennel||'','required maxlength="120"')}${field('city',t('Miasto','City'),'text',breeder?.city||'','required maxlength="100"')}${field('country',t('Kraj','Country'),'text',breeder?.country||'','required maxlength="100"')}<label>${t('Opis hodowli','Cattery description')}<textarea name="bio" maxlength="2000">${esc(breeder?.bio)}</textarea></label><button type="submit" class="button primary">${t('Zapisz hodowlę','Save cattery')}</button></form><form id="account-form" class="panel live-form live-page"><h2>${t('Dane konta','Account details')}</h2>${field('firstName',t('Imię','First name'),'text',user.firstName,'required maxlength="80"')}${field('surname',t('Nazwisko','Surname'),'text',user.surname,'required maxlength="80"')}${field('email',t('Adres e-mail','Email address'),'email',user.email,'required maxlength="254"')}<button class="button primary" type="submit">${t('Zapisz dane konta','Save account details')}</button></form>${accountSecurity()}<div class="live-tools"><button type="button" class="button secondary" data-logout>${t('Wyloguj się','Sign out')}</button></div>`;
+    return title(t('Twoje konto i hodowla','Your account and cattery'))+`<form id="breeder-form" class="panel live-form"><h2>${t('Profil hodowli','Cattery profile')}</h2>${formError}${field('kennel',t('Nazwa hodowli','Cattery name'),'text',breeder?.kennel||'','required maxlength="120"')}${field('city',t('Miasto','City'),'text',breeder?.city||'','required maxlength="100"')}${field('country',t('Kraj','Country'),'text',breeder?.country||'','required maxlength="100"')}<label>${t('Opis hodowli','Cattery description')}<textarea name="bio" maxlength="2000">${esc(breeder?.bio)}</textarea></label><button type="submit" class="button primary">${t('Zapisz hodowlę','Save cattery')}</button></form><form id="account-form" class="panel live-form live-page"><h2>${t('Dane konta','Account details')}</h2>${field('firstName',t('Imię','First name'),'text',user.firstName,'required maxlength="80"')}${field('surname',t('Nazwisko','Surname'),'text',user.surname,'required maxlength="80"')}${field('email',t('Adres e-mail','Email address'),'email',user.email,'required maxlength="254"')}${field('currentPassword',t('Obecne hasło (wymagane przy zmianie e-maila)','Current password (required when changing email)'),'password','','autocomplete="current-password"')}<button class="button primary" type="submit">${t('Zapisz dane konta','Save account details')}</button></form>${accountSecurity()}<div class="live-tools"><button type="button" class="button secondary" data-logout>${t('Wyloguj się','Sign out')}</button></div>`;
   }
   function accountSecurity() {
     return `<form id="password-form" class="panel live-form live-page"><h2>${t('Zmień hasło','Change password')}</h2>${field('currentPassword',t('Obecne hasło','Current password'),'password','','required autocomplete="current-password"')}${field('newPassword',t('Nowe hasło','New password'),'password','','required minlength="8" maxlength="72" autocomplete="new-password"')}${field('confirmPassword',t('Powtórz nowe hasło','Repeat new password'),'password','','required autocomplete="new-password"')}<p>${t('Minimum 8 znaków, maksymalnie 72 bajty. Zmiana wyloguje wszystkie sesje konta.','At least 8 characters, maximum 72 bytes. Changing your password signs out all account sessions.')}</p><button type="submit" class="button primary">${t('Zmień hasło','Change password')}</button></form><form id="delete-account-form" class="panel live-form live-page"><h2>${t('Usuń konto','Delete account')}</h2><p class="notice">${t('Usunięcie konta usuwa również Twoje koty, zdjęcia, dokumenty i rozmowy, także ich historię widoczną u drugiego uczestnika. Tej operacji nie można cofnąć.','Deleting your account also removes your cats, photos, documents and conversations, including their history for the other participant. This cannot be undone.')}</p>${field('currentPassword',t('Potwierdź obecnym hasłem','Confirm with your current password'),'password','','required autocomplete="current-password"')}<label class="check"><input type="checkbox" required>${t('Rozumiem i chcę trwale usunąć konto','I understand and want to permanently delete my account')}</label><button class="button secondary danger" type="submit">${t('Trwale usuń konto','Permanently delete account')}</button></form>`;
@@ -144,7 +152,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   async function loadBreeder(){try {breeder=await api('/owners/me');}catch(e){if(e.status!==404)throw e;breeder=null;}}
   document.addEventListener('click',async e=>{
     const el=e.target.closest('button');if(!el)return;
-    if(el.dataset.language){ language=el.dataset.language;try{localStorage.setItem('matchcats-language',language);}catch{}render(); }
+    if(el.dataset.language){ flash='';language=el.dataset.language;try{localStorage.setItem('matchcats-language',language);}catch{}render(); }
     if(el.id==='top-profile')location.hash='settings';
     if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-page')){if(el.dataset.pageType==='messages')chatPage=Number(el.dataset.page);else listPage=Number(el.dataset.page);render();}
@@ -161,12 +169,17 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     }catch(error){showError(error);el.disabled=false;}
   });
   document.addEventListener('change',e=>{if(e.target.hasAttribute('data-show-password')) main.querySelectorAll('input[name="password"],input[name="confirm"]').forEach(input=>input.type=e.target.checked?'text':'password');});
+  document.addEventListener('input',e=>{e.target.removeAttribute('aria-invalid');const box=e.target.closest('form')?.querySelector('.live-error');if(box)box.hidden=true;});
   document.addEventListener('submit',async e=>{
-    const form=e.target;if(!['login-form','register-form','breeder-form','account-form','password-form','delete-account-form','live-cat-form','live-search','live-message-form','document-upload','photo-upload'].includes(form.id))return;
+    const form=e.target;if(!['login-form','register-form','forgot-password-form','reset-password-form','breeder-form','account-form','password-form','delete-account-form','live-cat-form','live-search','live-message-form','document-upload','photo-upload'].includes(form.id))return;
     e.preventDefault();
-    if(!form.checkValidity()){form.reportValidity();return;}
+    if(!form.checkValidity()){const input=form.querySelector(':invalid');showError(t('Sprawdź wymagane pola, ich długość i format.','Check required fields, their length and format.'),form);if(input){input.setAttribute('aria-invalid','true');input.focus();}return;}
     const data=Object.fromEntries(new FormData(form));const submit=form.querySelector('[type="submit"]');
     flash='';
+    if(form.id==='reset-password-form'){
+      if(data.password!==data.confirm){showError(t('Hasła nie są takie same.','Passwords do not match.'));return;}
+      if(new TextEncoder().encode(data.password).length>72){showError(t('Hasło przekracza 72 bajty. Skróć je.','Password exceeds 72 bytes. Shorten it.'));return;}
+    }
     if(form.id==='password-form'){
       if(data.newPassword!==data.confirmPassword){showError(t('Hasła nie są takie same.','Passwords do not match.'));return;}
       if(new TextEncoder().encode(data.newPassword).length>72){showError(t('Hasło przekracza 72 bajty. Skróć je.','Password exceeds 72 bytes. Shorten it.'));return;}
@@ -180,6 +193,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     submit.disabled=true;form.setAttribute('aria-busy','true');
     try {
       if(form.id==='register-form'){await api('/users',{method:'POST',body:data});location.hash='login';await render(t('Konto zostało utworzone. Możesz się zalogować.','Your account has been created. You can sign in.'));}
+      else if(form.id==='forgot-password-form'){await api('/auth/password/request',{method:'POST',body:{email:data.email,language}});await render(t('Jeśli konto istnieje, wysłaliśmy link. Sprawdź również folder spam.','If an account exists, a link has been sent. Check your spam folder too.'));}
+      else if(form.id==='reset-password-form'){await api('/auth/password/reset',{method:'POST',body:{token:form.dataset.token,password:data.password}});MatchCatsAPI.resetCSRF();user=null;breeder=null;location.hash='login';await render(t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'));}
       else if(form.id==='login-form'){user=await api('/auth/login',{method:'POST',body:data});MatchCatsAPI.resetCSRF();await loadBreeder();location.hash=breeder?'dashboard':'settings';await render();}
       else if(form.id==='breeder-form'){breeder=await api('/owners/me',{method:'PUT',body:data});await render();}
       else if(form.id==='account-form'){user=await api('/users/me',{method:'PUT',body:data});await render();}
@@ -194,10 +209,10 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
         const cat=editingCat?await api('/cats/'+editingCat.id,{method:'PUT',body:{version:editingCat.version,profile:data}}):await api('/cats',{method:'POST',body:data});
         editingCat=null;location.hash='cat/'+cat.id;
       }
-      else if(form.id==='live-message-form'){if(!data.text.trim()){showError(t('Wpisz treść wiadomości.','Enter a message.'));return;}await api('/chats/'+form.dataset.chatId+'/messages',{method:'POST',body:{text:data.text.trim()}});await render();}
+      else if(form.id==='live-message-form'){if(!data.text.trim()){showError(t('Wpisz treść wiadomości.','Enter a message.'),form);return;}await api('/chats/'+form.dataset.chatId+'/messages',{method:'POST',body:{text:data.text.trim()}});const history=await api('/chats/'+form.dataset.chatId+'/messages?size=1');chatPage=Math.floor(Math.max(0,history.total-1)/50);await render();}
       else if(form.id==='document-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/documents',{method:'POST',body:new FormData(form)});await render();}
       else if(form.id==='photo-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/photo',{method:'POST',body:new FormData(form)});await render();}
-    }catch(error){showError(error);}finally{submit.disabled=false;form.removeAttribute('aria-busy');}
+    }catch(error){showError(error,form);}finally{submit.disabled=false;form.removeAttribute('aria-busy');}
   });
   window.addEventListener('hashchange',()=>{listPage=0;chatPage=0;render();window.scrollTo(0,0);});
   async function start() {

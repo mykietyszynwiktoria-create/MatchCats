@@ -26,7 +26,9 @@ window.MatchCatsAPI = (() => {
     }
     if (response.status === 204) return null;
     if (binary) return response.blob();
-    return response.json();
+    const text = await response.text();
+    if (!text) return null;
+    try { return JSON.parse(text); } catch { throw new APIError(502, 'INVALID_RESPONSE'); }
   }
   return {request, APIError, resetCSRF: () => {csrf = null;}};
 })();

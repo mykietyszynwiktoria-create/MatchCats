@@ -22,6 +22,10 @@ const passwords=[password,password];
    await page.locator('#register-form [name="confirm"]').fill(password);
    await page.locator('#register-form [type="submit"]').click();
    await page.locator('#login-form').waitFor();
+   if(i===0){
+    await go(page,'register');await fill(page,'register-form',{username:usernames[i],email:usernames[i]+'@example.test',firstName:'Alice',surname:'Test',password,confirm:password});
+    await page.locator('#register-form [type="submit"]').click();await page.getByRole('alert').filter({hasText:'jest już zajęty'}).waitFor();await go(page,'login');
+   }
    await fill(page,'login-form',{username:usernames[i],password:'WrongPassword!'});
    await page.locator('#login-form [type="submit"]').click();
    await page.getByRole('alert').filter({hasText:'Nieprawidłowy login lub hasło'}).waitFor();
@@ -65,6 +69,16 @@ const passwords=[password,password];
   await go(alice,'messages');await alice.locator('.bubble').filter({hasText:'Hello Alice'}).waitFor();
   await go(alice,'candidates/'+aliceCat);await alice.locator('[data-pair-candidate="'+bobCat+'"]').click();
   await alice.locator('#live-message-form').waitFor();
+  for(const language of ['en','pl']) {
+   await alice.locator('[data-language="'+language+'"]').click();
+   for(const width of [320,390,768,1440]) {
+    await alice.setViewportSize({width,height:1000});
+    for(const route of ['dashboard','cats','search','messages','documents','settings','cat/'+aliceCat,'edit-cat/'+aliceCat,'candidates/'+aliceCat]) {
+     await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Live overflow '+route+' '+language+' '+width);
+    }
+   }
+  }
+  await alice.setViewportSize({width:1440,height:1000});
   await go(alice,'cats');await alice.locator('.cat-card').filter({hasText:'Alice Cat'}).waitFor();
   assert.equal(await alice.locator('.cat-card').filter({hasText:'Bob Cat'}).count(),0);
   await go(alice,'edit-cat/'+bobCat);await alice.getByRole('alert').waitFor();
@@ -80,12 +94,16 @@ const passwords=[password,password];
   await contexts[0].clearCookies();await alice.locator('#navigation a[href="#cats"]').click();
   await alice.locator('#login-form').waitFor();
   await alice.locator('[data-language="en"]').click();await alice.getByRole('heading',{name:'Sign in',exact:true}).waitFor();
-  for(const width of [320,390,768,1440]){await alice.setViewportSize({width,height:1000});for(const route of ['login','register']){await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Overflow '+route+' '+width);}}
-  await alice.route('**/auth/csrf',route=>route.abort());
+  await go(alice,'forgot');await alice.locator('[name=email]').fill(usernames[0]+'@example.test');await alice.locator('#forgot-password-form [type=submit]').click();
+  await alice.getByRole('alert').filter({hasText:'Email delivery is not configured'}).waitFor();
+  await go(alice,'reset/'+'A'.repeat(43));await fill(alice,'reset-password-form',{password:'AnotherTestPassword!',confirm:'AnotherTestPassword!'});await alice.locator('#reset-password-form [type=submit]').click();
+  await alice.getByRole('alert').filter({hasText:'invalid, already used or expired'}).waitFor();
+  for(const width of [320,390,768,1440]){await alice.setViewportSize({width,height:1000});for(const route of ['login','register','forgot','reset/'+'A'.repeat(43)]){await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Overflow '+route+' '+width);}}
+  await alice.route('**/auth/login',route=>route.abort());
   await go(alice,'login');await fill(alice,'login-form',{username:usernames[0],password:passwords[0]});await alice.locator('#login-form [type="submit"]').click();
   await alice.getByRole('alert').filter({hasText:'Cannot reach the server'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('PASS: real registration, password mismatch, invalid credentials, sessions, profiles, cats, private/shared documents, download, conversations, escaping, proposals, ownership, logout, expiry, PL/EN, auth layout, network errors.');
+  console.log('PASS: real registration, duplicate accounts, password mismatch, invalid credentials, sessions, profiles, cats/photos, private/shared documents, download, conversations, escaping, proposals, ownership, password change, logout, expiry, recovery errors, PL/EN, auth layout, network errors and temporary account deletion.');
  }catch(error){
   for(const context of contexts)for(const page of context.pages())console.error('DIAGNOSTIC',page.url(),await page.locator('#main').innerText());
   throw error;

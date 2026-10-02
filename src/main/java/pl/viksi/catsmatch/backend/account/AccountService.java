@@ -24,11 +24,12 @@ public class AccountService {
     public record DeleteAccount(@NotBlank String currentPassword) {}
     public record ProfileInput(@NotBlank @Email @Size(max=254) String email,
                                @NotBlank @Size(max=80) String firstName,
-                               @NotBlank @Size(max=80) String surname) {}
+                               @NotBlank @Size(max=80) String surname,@Size(max=72) String currentPassword) {}
     private final AccountRepository accounts;
     private final PasswordEncoder passwords;
-    public AccountService(AccountRepository accounts, PasswordEncoder passwords) {
-        this.accounts = accounts; this.passwords = passwords;
+    private final PasswordResetRepository resets;
+    public AccountService(AccountRepository accounts, PasswordEncoder passwords,PasswordResetRepository resets) {
+        this.accounts = accounts; this.passwords = passwords;this.resets=resets;
     }
     @Transactional
     public UserView register(Registration input) {
@@ -51,8 +52,10 @@ public class AccountService {
     }
     @Transactional
     public UserView update(Authentication authentication, ProfileInput input) {
-        Account account = current(authentication);
-        account.email = input.email().strip().toLowerCase(Locale.ROOT);
+        Account account = accounts.lockAccounts(java.util.List.of(current(authentication).id)).getFirst();
+        String email=input.email().strip().toLowerCase(Locale.ROOT);
+        if(!account.email.equals(email)){verify(account,input.currentPassword());resets.deleteAllByAccountId(account.id);resets.flush();}
+        account.email = email;
         account.firstName = input.firstName().strip(); account.surname = input.surname().strip();
         return view(accounts.saveAndFlush(account));
     }
@@ -60,16 +63,20 @@ public class AccountService {
         return new UserView(account.id, account.username, account.email, account.firstName, account.surname);
     }
     private void verify(Account account,String password) {
-        if(password.getBytes(StandardCharsets.UTF_8).length>72 || !passwords.matches(password,account.passwordHash))
+        if(password==null || password.isBlank() || password.getBytes(StandardCharsets.UTF_8).length>72 || !passwords.matches(password,account.passwordHash))
             throw new ApiException(HttpStatus.BAD_REQUEST,"INVALID_CURRENT_PASSWORD","Current password is incorrect");
     }
     @Transactional public void changePassword(Authentication auth,PasswordChange input) {
-        Account account=current(auth);verify(account,input.currentPassword());
-        if(input.newPassword().getBytes(StandardCharsets.UTF_8).length>72)throw ApiException.invalid("Password must not exceed 72 UTF-8 bytes");
-        account.passwordHash=passwords.encode(input.newPassword());account.securityVersion++;
+        Account account=accounts.lockAccounts(java.util.List.of(current(auth).id)).getFirst();verify(account,input.currentPassword());
+        replacePassword(account,input.newPassword());
+    }
+    public void replacePassword(Account account,String password) {
+        if(password.getBytes(StandardCharsets.UTF_8).length>72)throw ApiException.invalid("Password must not exceed 72 UTF-8 bytes");
+        account.passwordHash=passwords.encode(password);account.securityVersion++;
+        resets.deleteAllByAccountId(account.id);resets.flush();
         accounts.saveAndFlush(account);
     }
     @Transactional public void delete(Authentication auth,DeleteAccount input) {
-        Account account=current(auth);verify(account,input.currentPassword());accounts.delete(account);accounts.flush();
+        Account account=accounts.lockAccounts(java.util.List.of(current(auth).id)).getFirst();verify(account,input.currentPassword());accounts.delete(account);accounts.flush();
     }
 }
