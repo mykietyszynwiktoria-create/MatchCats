@@ -25,13 +25,14 @@ public class CatService {
         @NotNull @Size(max=2000) String description, @NotNull Boolean available) {}
     public record CatUpdate(@NotNull @PositiveOrZero Long version, @NotNull @Valid CatInput profile) {}
     public record CatView(Integer id, Integer ownerId, String name, String breed, Cat.Sex sex, Cat.Health health,
-        LocalDate birthDate, String city, String country, String description, boolean available, long version) {}
+        LocalDate birthDate, String city, String country, String description, boolean available, long version, boolean hasPhoto) {}
     public record PageView<T>(List<T> items, long total, int page, int size) {}
     private final CatRepository cats;
     private final BreederRepository breeders;
     private final AccountService accounts;
-    public CatService(CatRepository cats, BreederRepository breeders, AccountService accounts) {
-        this.cats=cats; this.breeders=breeders; this.accounts=accounts;
+    private final CatPhotoRepository photos;
+    public CatService(CatRepository cats, BreederRepository breeders, AccountService accounts, CatPhotoRepository photos) {
+        this.cats=cats; this.breeders=breeders; this.accounts=accounts; this.photos=photos;
     }
     public Integer userId(Authentication auth) { return accounts.current(auth).id; }
     public Breeder breeder(Integer id) { return breeders.findById(id).orElseThrow(() -> ApiException.missing("Breeder")); }
@@ -45,7 +46,7 @@ public class CatService {
     public Cat owned(Integer id, Authentication auth) {
         Cat c=cat(id);if(!c.ownerId.equals(userId(auth))) throw ApiException.forbidden();return c;
     }
-    public CatView view(Cat c) { return new CatView(c.id,c.ownerId,c.name,c.breed,c.sex,c.health,c.birthDate,c.city,c.country,c.description,c.available,c.version); }
+    public CatView view(Cat c) { return new CatView(c.id,c.ownerId,c.name,c.breed,c.sex,c.health,c.birthDate,c.city,c.country,c.description,c.available,c.version,photos.existsById(c.id)); }
     private void assign(Cat c, CatInput i) {
         c.name=i.name().strip();c.breed=i.breed().strip();c.sex=i.sex();c.health=i.health();c.birthDate=i.birthDate();
         c.city=i.city().strip();c.country=i.country().strip();c.description=i.description().strip();c.available=i.available();

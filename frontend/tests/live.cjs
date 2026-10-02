@@ -41,6 +41,9 @@ const password='TemporaryTestPassword!';
   }
   const alice=contexts[0].pages()[0],bob=contexts[1].pages()[0];
   const aliceCat=alice.url().split('/').at(-1),bobCat=bob.url().split('/').at(-1);
+  await alice.locator('#photo-upload [name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
+  await alice.locator('#photo-upload [type="submit"]').click();await alice.locator('.live-cat-photo').waitFor();
+  assert.ok(await alice.locator('.live-cat-photo').evaluate(img=>img.complete&&img.naturalWidth>0));
   await go(alice,'documents/'+aliceCat);
   await alice.locator('[name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
   await alice.locator('#document-upload [type="submit"]').click();

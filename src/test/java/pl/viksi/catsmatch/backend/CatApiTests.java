@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import pl.viksi.catsmatch.backend.account.*;
 import pl.viksi.catsmatch.backend.cats.*;
@@ -24,6 +25,31 @@ class CatApiTests {
     @Autowired AccountService accounts;
     @Autowired CatRepository cats;
     @Autowired BreederRepository breeders;
+    @Autowired CatPhotoRepository photos;
+    @Test void photosAreDecodedReencodedAndOnlyOwnersCanChangeThem() throws Exception {
+        account("photoalice");account("photobob");breeder("photoalice");breeder("photobob");
+        int id=create("photoalice",profile("Photo Cat","Maine Coon","FEMALE"));
+        var image=new java.awt.image.BufferedImage(3,2,java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var bytes=new java.io.ByteArrayOutputStream();javax.imageio.ImageIO.write(image,"PNG",bytes);
+        var file=new MockMultipartFile("file","cat.png","image/png",bytes.toByteArray());
+        mvc.perform(multipart("/cats/"+id+"/photo").file(file).with(user("photobob")).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(multipart("/cats/"+id+"/photo").file(file).with(user("photoalice"))).andExpect(status().isForbidden());
+        mvc.perform(multipart("/cats/"+id+"/photo").file(file).with(user("photoalice")).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/cats/"+id).with(user("photoalice"))).andExpect(jsonPath("$.hasPhoto").value(true));
+        mvc.perform(get("/cats/"+id+"/photo")).andExpect(status().isUnauthorized());
+        byte[] saved=mvc.perform(get("/cats/"+id+"/photo").with(user("photobob"))).andExpect(status().isOk())
+            .andExpect(content().contentType("image/jpeg")).andReturn().getResponse().getContentAsByteArray();
+        assertEquals(3,javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(saved)).getWidth());
+        mvc.perform(delete("/cats/"+id+"/photo").with(user("photobob")).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(delete("/cats/"+id).with(user("photoalice")).with(csrf())).andExpect(status().isNoContent());
+        assertFalse(photos.existsById(id));
+    }
+    @Test void invalidPhotoBytesAreRejectedEvenWithAnImageFilename() throws Exception {
+        account("badphoto");breeder("badphoto");int id=create("badphoto",profile("Photo Cat","Maine Coon","FEMALE"));
+        var fake=new MockMultipartFile("file","cat.jpg","image/jpeg","<svg onload='alert(1)'/>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mvc.perform(multipart("/cats/"+id+"/photo").file(fake).with(user("badphoto")).with(csrf())).andExpect(status().isBadRequest());
+        assertFalse(photos.existsById(id));
+    }
     int account(String name) {
         return accounts.register(new AccountService.Registration(name,"StrongTestPassword!",name+"@example.test","Test","Breeder")).id();
     }

@@ -86,8 +86,12 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   const sex = value => value==='MALE'?t('Kocur','Male'):t('Kotka','Female');
   const health = value => ({UNKNOWN:t('Niepodane','Unknown'),HEALTHY:t('Zdrowy według właściciela','Owner-declared healthy'),SICK:t('Chory według właściciela','Owner-declared sick')})[value];
+  const photo = cat => cat.hasPhoto ? `<div class="cat-picture"><img class="live-cat-photo" src="/cats/${cat.id}/photo" alt="${esc(cat.name)}"></div>` : `<div class="cat-picture live-photo-empty" role="img" aria-label="${t('Brak zdjęcia','No photo')}">♧</div>`;
+  function photoForm(cat) {
+    return `<form id="photo-upload" data-cat-id="${cat.id}"><label>${t('Zdjęcie JPEG lub PNG (do 5 MB, 24 megapikseli)','JPEG or PNG photo (up to 5 MB, 24 megapixels)')}<input type="file" name="file" accept="image/png,image/jpeg" required></label><button class="button primary" type="submit">${t('Zapisz zdjęcie','Save photo')}</button>${cat.hasPhoto?`<button class="button secondary" type="button" data-delete-photo="${cat.id}">${t('Usuń zdjęcie','Remove photo')}</button>`:''}</form>`;
+  }
   function card(cat) {
-    return `<article class="cat-card"><div class="cat-picture live-photo-empty" aria-label="${t('Brak zdjęcia','No photo')}">♧</div><div class="cat-body"><div class="cat-title"><h3>${esc(cat.name)}</h3><span>${sex(cat.sex)}</span></div><p class="cat-meta">${esc(cat.breed)} · ${esc(cat.city)}</p><p>${cat.available?t('Dostępny do kontaktu','Available for contact'):t('Obecnie niedostępny','Currently unavailable')}</p><div class="cat-bottom">${button(t('Zobacz profil','View profile'),'cat/'+cat.id,'secondary')}</div></div></article>`;
+    return `<article class="cat-card">${photo(cat)}<div class="cat-body"><div class="cat-title"><h3>${esc(cat.name)}</h3><span>${sex(cat.sex)}</span></div><p class="cat-meta">${esc(cat.breed)} · ${esc(cat.city)}</p><p>${cat.available?t('Dostępny do kontaktu','Available for contact'):t('Obecnie niedostępny','Currently unavailable')}</p><div class="cat-bottom">${button(t('Zobacz profil','View profile'),'cat/'+cat.id,'secondary')}</div></div></article>`;
   }
   function pager(result, type) {
     return `<div class="live-pages"><button class="button secondary" data-page="${Math.max(0,result.page-1)}" data-page-type="${type}" ${result.page===0?'disabled':''}>${t('Poprzednie','Previous')}</button><span>${t('Strona','Page')} ${result.page+1} · ${t('Wyników','Results')}: ${result.total}</span><button class="button secondary" data-page="${result.page+1}" data-page-type="${type}" ${(result.page+1)*result.size>=result.total?'disabled':''}>${t('Następne','Next')}</button></div>`;
@@ -110,7 +114,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   async function catDetail(id) {
     const cat=await api('/cats/'+id);const owner=await api('/owners/'+cat.ownerId);const docs=await api('/cats/'+id+'/documents');
     const own=cat.ownerId===user.id;
-    return title(cat.name,cat.breed)+`<div class="detail-layout"><section class="panel"><div class="cat-picture live-photo-empty">♧</div><p>${t('Nie dodano zdjęcia.','No photo has been added.')}</p><h2>${t('Dokumenty','Documents')}</h2>${documentsHTML(docs,own)}${own?button(t('Zarządzaj dokumentami','Manage documents'),'documents/'+id,'secondary'):''}</section><section class="detail-box"><h2>${esc(owner.kennel)}</h2><p>${esc(cat.city)} · ${esc(cat.country)}</p><p>${sex(cat.sex)} · ${esc(cat.birthDate)}</p><p>${health(cat.health)}</p><p>${esc(cat.description)}</p><p class="notice">${t('Profil i załączniki nie oznaczają niezależnej weryfikacji zdrowia, pochodzenia ani zgodności genetycznej.','A profile and attachments do not mean independent verification of health, ancestry or genetic compatibility.')}</p><div class="live-tools">${own?button(t('Edytuj profil','Edit profile'),'edit-cat/'+id,'secondary')+button(t('Znajdź kandydatów','Find candidates'),'candidates/'+id)+`<button type="button" class="button secondary danger" data-delete-cat="${cat.id}">${t('Usuń kota','Delete cat')}</button>`:`<button type="button" class="button primary" data-contact="${cat.id}" ${!cat.available?'disabled':''}>${t('Napisz do hodowcy','Contact breeder')}</button>`}</div></section></div>`;
+    return title(cat.name,cat.breed)+`<div class="detail-layout"><section class="panel">${photo(cat)}${own?photoForm(cat):''}<h2>${t('Dokumenty','Documents')}</h2>${documentsHTML(docs,own)}${own?button(t('Zarządzaj dokumentami','Manage documents'),'documents/'+id,'secondary'):''}</section><section class="detail-box"><h2>${esc(owner.kennel)}</h2><p>${esc(cat.city)} · ${esc(cat.country)}</p><p>${sex(cat.sex)} · ${esc(cat.birthDate)}</p><p>${health(cat.health)}</p><p>${esc(cat.description)}</p><p class="notice">${t('Profil i załączniki nie oznaczają niezależnej weryfikacji zdrowia, pochodzenia ani zgodności genetycznej.','A profile and attachments do not mean independent verification of health, ancestry or genetic compatibility.')}</p><div class="live-tools">${own?button(t('Edytuj profil','Edit profile'),'edit-cat/'+id,'secondary')+button(t('Znajdź kandydatów','Find candidates'),'candidates/'+id)+`<button type="button" class="button secondary danger" data-delete-cat="${cat.id}">${t('Usuń kota','Delete cat')}</button>`:`<button type="button" class="button primary" data-contact="${cat.id}" ${!cat.available?'disabled':''}>${t('Napisz do hodowcy','Contact breeder')}</button>`}</div></section></div>`;
   }
   const docKind=kind=>({PEDIGREE:t('Rodowód','Pedigree'),GENETIC_TEST:t('Badanie genetyczne','Genetic test'),AWARD:t('Osiągnięcie','Award'),HEALTH:t('Zdrowie','Health'),OTHER:t('Inny','Other')})[kind];
   function documentsHTML(docs,own) {
@@ -148,12 +152,13 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       if(el.dataset.deleteCat && confirm(t('Usunąć kota i jego dokumenty?','Delete this cat and its documents?'))){await api('/cats/'+el.dataset.deleteCat,{method:'DELETE'});location.hash='cats';}
       if(el.dataset.download){const blob=await api('/documents/'+el.dataset.download+'/download',{binary:true});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='document-'+el.dataset.download+({ 'application/pdf':'.pdf','image/png':'.png','image/jpeg':'.jpg'}[blob.type]||'');a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
       if(el.dataset.share){await api('/documents/'+el.dataset.share+'/visibility',{method:'PUT',body:{visibility:el.dataset.visibility}});await render();}
+      if(el.dataset.deletePhoto && confirm(t('Usunąć zdjęcie kota?','Remove the cat photo?'))){await api('/cats/'+el.dataset.deletePhoto+'/photo',{method:'DELETE'});await render();}
       if(el.dataset.deleteDocument && confirm(t('Usunąć ten dokument?','Delete this document?'))){await api('/documents/'+el.dataset.deleteDocument,{method:'DELETE'});await render();}
     }catch(error){showError(error);el.disabled=false;}
   });
   document.addEventListener('change',e=>{if(e.target.hasAttribute('data-show-password')) main.querySelectorAll('input[name="password"],input[name="confirm"]').forEach(input=>input.type=e.target.checked?'text':'password');});
   document.addEventListener('submit',async e=>{
-    const form=e.target;if(!['login-form','register-form','breeder-form','account-form','live-cat-form','live-search','live-message-form','document-upload'].includes(form.id))return;
+    const form=e.target;if(!['login-form','register-form','breeder-form','account-form','live-cat-form','live-search','live-message-form','document-upload','photo-upload'].includes(form.id))return;
     e.preventDefault();
     if(!form.checkValidity()){form.reportValidity();return;}
     const data=Object.fromEntries(new FormData(form));const submit=form.querySelector('[type="submit"]');
@@ -178,6 +183,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       }
       else if(form.id==='live-message-form'){if(!data.text.trim()){showError(t('Wpisz treść wiadomości.','Enter a message.'));return;}await api('/chats/'+form.dataset.chatId+'/messages',{method:'POST',body:{text:data.text.trim()}});await render();}
       else if(form.id==='document-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/documents',{method:'POST',body:new FormData(form)});await render();}
+      else if(form.id==='photo-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/photo',{method:'POST',body:new FormData(form)});await render();}
     }catch(error){showError(error);}finally{submit.disabled=false;form.removeAttribute('aria-busy');}
   });
   window.addEventListener('hashchange',()=>{listPage=0;chatPage=0;render();window.scrollTo(0,0);});
