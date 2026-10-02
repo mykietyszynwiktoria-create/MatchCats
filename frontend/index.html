@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#23584e">
+  <title>MatchCats — panel hodowcy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Przejdź do treści</a>
+  <aside class="sidebar">
+    <a class="brand" href="#dashboard"><span class="brand-mark">🐈</span>MatchCats<span class="brand-dot">.</span></a>
+    <div class="workspace"><span class="workspace-icon">W</span><div><strong>Twoja hodowla</strong><small>Przestrzeń hodowcy</small></div></div>
+    <div class="nav-caption">TWOJA PRZESTRZEŃ</div>
+    <nav id="navigation" aria-label="Główna nawigacja"></nav>
+    <div class="sidebar-note"><span>✧</span><strong>Dobre relacje zaczynają się od zaufania.</strong><p>Poznaj hodowlę, sprawdź dokumenty i porozmawiaj z właścicielem.</p></div>
+    <div class="sidebar-bottom"><span class="avatar">W</span><div><strong>Wiktoria</strong><small>Konto demonstracyjne</small></div><button class="icon-button" id="profile-button" aria-label="Otwórz ustawienia">⚙</button></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><div><span class="topbar-label">PANEL HODOWCY</span><span id="breadcrumb">Przegląd</span></div><div class="topbar-actions"><div class="language-switch" role="group" aria-label="Język / Language"><button type="button" data-language="pl" lang="pl">PL</button><button type="button" data-language="en" lang="en">EN</button></div><span class="demo-chip">Wersja demonstracyjna</span><button class="avatar" id="top-profile" aria-label="Otwórz ustawienia profilu">W</button></div></header>
+    <main id="main" tabindex="-1"></main>
+    <footer>MatchCats · Łączymy hodowców, z troską o koty.<span>Przykładowe dane · Zapis lokalny na tym urządzeniu</span></footer>
+  </div>
+  <dialog id="cat-dialog" aria-labelledby="dialog-title">
+    <form id="cat-form"><div class="dialog-heading"><div><span class="eyebrow">TWOJA HODOWLA</span><h2 id="dialog-title">Dodaj profil kota</h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="Zamknij">×</button></div><p class="muted">W tej wersji profil zapisuje się tylko w tej przeglądarce.</p>
+      <label>Imię kota<input name="name" required maxlength="60" placeholder="np. Luna"></label>
+      <div class="form-grid"><label>Rasa<select name="breed"><option>Maine Coon</option><option>Ragdoll</option><option>Brytyjski krótkowłosy</option><option>Syberyjski</option></select></label><label>Płeć<select name="sex"><option value="FEMALE">Kotka</option><option value="MALE">Kocur</option></select></label></div>
+      <div class="form-grid"><label>Data urodzenia<input type="date" name="birth" required></label><label>Miasto<input name="city" required maxlength="60" placeholder="np. Warszawa"></label></div>
+      <label>Opis<textarea name="description" maxlength="1000" rows="3" placeholder="Opowiedz o kocie i warunkach kontaktu"></textarea></label>
+      <label class="check"><input type="checkbox" name="available" checked> Pokaż jako dostępnego do rozmowy o kryciu</label>
+      <p class="form-error" id="cat-error" role="alert"></p><div class="dialog-footer"><button type="button" class="button secondary" id="cancel-dialog">Anuluj</button><button class="button primary" type="submit">Zapisz profil</button></div>
+    </form>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

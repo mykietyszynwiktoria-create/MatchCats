@@ -1,0 +1,8 @@
+{
+  "name": "matchcats-interface-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demonstracyjny interfejs paneli MatchCats",
+  "scripts": { "test": "node tests/panels.cjs" },
+  "devDependencies": { "playwright": "1.62.1" }
+}
