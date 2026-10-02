@@ -69,7 +69,21 @@ Migration `V4__cat_pairs.sql` enforces ordered unique cat pairs. API tests verif
 
 ## Still outstanding
 
-Document uploads/permissions, verification of breeder documents, password recovery, account lifecycle, real-time chat and moderation, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
+Verification of breeder documents, password recovery, account lifecycle, real-time chat and moderation, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
+
+## Cat documents
+
+`POST /cats/{catId}/documents` accepts multipart form fields `file` and `kind`. Only the cat owner can upload. Kinds are `PEDIGREE`, `GENETIC_TEST`, `AWARD`, `HEALTH`, `OTHER`. New files are PRIVATE. Maximum size is 5 MiB and maximum count is 10 per cat; a cat row lock serializes quota checks. File bytes are stored in PostgreSQL BYTEA by migration V5; deletion of a cat cascades to its documents. No original filename is used as a disk path.
+
+Allowed content signatures are PDF (`%PDF-`), PNG and JPEG. The server detects media type from these bytes, ignoring the submitted MIME type and extension. This is a signature check only, not a parser, malware scanner or certificate authentication. Empty files, unsupported signatures, filenames containing paths/control characters and filenames over 200 characters return 400. Oversize files return 413; exceeding the count returns 409 DOCUMENT_LIMIT. All uploaded documents are labelled OWNER_UPLOADED, never independently verified.
+
+`GET /cats/{catId}/documents` returns metadata without file bytes. Owners see all their cat's documents; other signed-in accounts must have a breeder profile and see only BREEDERS documents. `PUT /documents/{id}/visibility` accepts `{ "visibility": "PRIVATE" }` or `BREEDERS` and requires cat ownership. BREEDERS means all signed-in accounts with a breeder profile, not selected chat participants; no anonymous public sharing is implemented. An owner can revoke access by changing back to PRIVATE. Previously downloaded copies cannot be recalled.
+
+`GET /documents/{id}/download` returns bytes only to the owner or permitted breeders. The response uses attachment disposition with a server-generated filename, no-store caching and nosniff. `DELETE /documents/{id}` requires cat ownership and returns 204. Every write requires CSRF and every route requires authentication. Clients must display metadata as plain text. The document entity and its bytes are never returned as JSON.
+
+Before production: add malware scanning or safe file processing, global storage quotas/rate limits, backup/retention handling and certificate verification procedures. Document upload does not prove pedigree, genetic suitability or veterinary fitness.
+
+Verification on 2 October 2026: the complete Java 21 PostgreSQL test/build passed with 19 tests and zero failures/errors. Four document API tests cover persistence, metadata, PDF/PNG/JPEG signatures, owner/other-account access, sharing/revocation, CSRF, malformed input, size/count limits and deletion. A built-JAR check passed 26 real HTTP requests, including multipart uploads, byte-for-byte download, visibility changes and servlet-level oversize rejection. Its temporary accounts were removed from the isolated development database.
 
 ## Verification for the profile module
 
