@@ -43,10 +43,14 @@ Implementation order: entities describe stored data; migration defines database 
 
 ## Running locally
 
-Use Java 21 and an empty development PostgreSQL database. Set `DB_URL`, `DB_USER` and `DB_PASSWORD` for the database, then run `./gradlew bootRun` (Windows: `.\gradlew.bat bootRun`). Do not use the legacy Docker Compose settings without adjusting them; they still target the old database configuration.
+Use Java 21 and an empty development PostgreSQL database. Set `DB_URL`, `DB_USER` and `DB_PASSWORD` for the database, then run `./gradlew bootRun` (Windows: `.\gradlew.bat bootRun`). The updated Docker Compose configuration starts PostgreSQL 16 on localhost using a separate named volume; follow the root README for .env and PowerShell setup.
 
 For tests, use a separate empty database and set `TEST_DB_URL`, `TEST_DB_USER` and `TEST_DB_PASSWORD`. Run `./gradlew test build`. Defaults target the isolated local test database at port 55432; tests are not intended to run against production data. Test methods roll back their fixtures, while Flyway schema migrations remain applied to that test database.
 
 ## Still outstanding
 
 Matching, persisted conversations, document uploads/permissions, password recovery, account lifecycle, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
+
+## Verification for the profile module
+
+On 2 October 2026, Java 21 test/build passed against PostgreSQL 16: eight tests, zero failures/errors. A separate live HTTP check passed 17 requests covering account/session/CSRF setup, profile persistence, filters, stale-update conflict, deletion and logout. The local Docker Compose configuration also passed `docker compose config --quiet`; this validates its configuration, not a local Docker database startup.

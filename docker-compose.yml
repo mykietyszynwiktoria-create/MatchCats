@@ -1,15 +1,19 @@
-version: '3.9'
-
 services:
-
-  postgres13:
-    container_name: postgres13_container
-    image: postgres:13
+  postgres:
+    image: postgres:16
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
+      - matchcats_profiles_pg16:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: mysweetcat
-      POSTGRES_DB: mycatmatch
-      POSTGRES_USER: mycatmatch
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: matchcats
+      POSTGRES_USER: matchcats
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U matchcats -d matchcats"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  matchcats_profiles_pg16:

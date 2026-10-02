@@ -1,93 +1,61 @@
-# matchcats
+# MatchCats
 
+MatchCats helps pedigree cat breeders browse profiles and contact owners. The project currently contains a bilingual interface prototype and a replacement Java backend under development.
 
+## Current status
 
-## Getting started
+- Frontend: blue PL/EN breeder panels with local sample profiles and demo conversations. It is not yet connected to the backend.
+- Backend: account registration, session login/logout, account profile, breeder profiles, cat CRUD, paginated filters and owner-only edits/deletion.
+- Database: PostgreSQL with Flyway migrations. Existing legacy records are not automatically migrated.
+- Outstanding: matching, private persisted messaging, document uploads/verification workflow, production deployment and Windows/Android/iOS store packages.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+An owner-declared health status or profile is not independent verification of health, pedigree or breeding suitability.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Start the development database
 
-## Add your files
+Requires Docker Desktop and Java 21. Commands below use PowerShell from the repository root.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+```powershell
+Copy-Item .env.example .env
+# Edit .env and choose a local password before starting PostgreSQL.
+docker compose up -d postgres
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/wiktoria-postgres2/matchcats.git
-git branch -M main
-git push -uf origin main
+
+The database listens only on `127.0.0.1:5432`. This Compose configuration uses a new named PostgreSQL 16 volume, separate from the previous legacy configuration. It does not migrate or delete old databases. If port 5432 is already occupied, change the host port and use the same port in DB_URL.
+
+Compose reads `.env` automatically; a standalone Java process does not. Set the matching values in your PowerShell session:
+
+```powershell
+$env:DB_URL='jdbc:postgresql://localhost:5432/matchcats'
+$env:DB_USER='matchcats'
+$env:DB_PASSWORD='<the password you put in .env>'
+.\gradlew.bat bootRun
 ```
 
-## Integrate with your tools
+The API starts on port 8080. `GET /health` reports application startup; it is not a comprehensive readiness or database-health probe. See [backend API notes](docs/BACKEND.md) for session cookies, CSRF tokens, profile JSON and endpoint permissions.
 
-- [ ] [Set up project integrations](https://gitlab.com/wiktoria-postgres2/matchcats/-/settings/integrations)
+## Run tests and build
 
-## Collaborate with your team
+Use a separate test database. The following command creates it once in the local development server:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+```powershell
+docker compose exec postgres createdb -U matchcats matchcats_test
+$env:TEST_DB_URL='jdbc:postgresql://localhost:5432/matchcats_test'
+$env:TEST_DB_USER='matchcats'
+$env:TEST_DB_PASSWORD='<the password you put in .env>'
+.\gradlew.bat test build
+```
 
-## Test and Deploy
+If the test database already exists, skip its creation. Never point test configuration at a production database. Reports are generated in `build/reports/tests/test/index.html`; the executable server JAR is generated in `build/libs`. A server JAR is not a Windows installer, Android APK or iOS application.
 
-Use the built-in continuous integration in GitLab.
+GitHub Actions runs tests/build with Java 21 and a temporary PostgreSQL 16 database for backend-related pushes and pull requests. Test reports are available as workflow artifacts. The existing separate workflow mirrors GitHub commits to GitLab.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Interface preview
 
-***
+See [frontend instructions](frontend/README.md). Browser localStorage is demonstration storage only. The frontend's local cat shape (`birth`, `own`, sample document labels) differs from the backend contract (`birthDate`, `ownerId`, health, country and version). API integration must explicitly map fields and replace local demo operations with authenticated server requests.
 
-# Editing this README
+## Implementation
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+New backend code is under `src/main/java/pl/viksi/catsmatch/backend`; old packages remain excluded from runtime scanning while features are replaced. Schema changes are under `src/main/resources/db/migration`. Integration tests are under `src/test/java/pl/viksi/catsmatch/backend`.
 
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Published repository explanations and commit messages are English. Polish and English remain supported interface languages.

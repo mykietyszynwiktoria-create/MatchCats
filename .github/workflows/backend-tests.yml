@@ -1,0 +1,64 @@
+name: Backend tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '*.gradle'
+      - 'gradle/**'
+      - 'gradlew*'
+      - 'docker-compose.yml'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - '*.gradle'
+      - 'gradle/**'
+      - 'gradlew*'
+      - 'docker-compose.yml'
+      - '.github/workflows/backend-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: matchcats_test
+          POSTGRES_USER: matchcats_test
+          POSTGRES_PASSWORD: ci-only-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U matchcats_test -d matchcats_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DB_URL: jdbc:postgresql://localhost:5432/matchcats_test
+      TEST_DB_USER: matchcats_test
+      TEST_DB_PASSWORD: ci-only-test-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Validate local database configuration
+        run: DB_PASSWORD=ci-compose-example docker compose config --quiet
+      - name: Test and build
+        run: |
+          chmod +x gradlew
+          ./gradlew test build --no-daemon --console=plain
+      - name: Publish test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            build/reports/tests/test
+            build/test-results/test
