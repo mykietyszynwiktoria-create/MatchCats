@@ -26,6 +26,13 @@
 body.signed-out #navigation, body.signed-out #top-profile, body.signed-out .topbar { display:none; }
 body.signed-out .sidebar { justify-content:space-between; }
 button:disabled { cursor:wait; opacity:.6; }
+.safety-report { margin:20px 0; }
+.safety-text, .safety-evidence { white-space:pre-wrap; overflow-wrap:anywhere; }
+.safety-evidence { font:inherit; padding:16px; background:#edf4ff; border-radius:12px; }
+.moderation-decision label, .moderation-reinstate label { display:block; margin:16px 0; }
+.moderation-reinstate { padding:18px 0; border-bottom:1px solid #d5e5f5; }
+.moderation-reinstate input { width:100%; }
+.bubble .button { margin-top:8px; padding:5px 10px; min-height:30px; font-size:12px; }
 @media(max-width:640px) {
   .auth-layout { grid-template-columns:1fr; margin:0; gap:15px; }
   .auth-intro { padding:5px 4px; }

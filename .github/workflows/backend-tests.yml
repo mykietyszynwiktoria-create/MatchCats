@@ -85,6 +85,7 @@ jobs:
           curl --fail --silent http://127.0.0.1:8084/health
           npm --prefix frontend test
           npm --prefix frontend run test:live
+          npm --prefix frontend run test:safety
       - name: Build and smoke-test the container
         run: |
           docker build --tag matchcats-ci .

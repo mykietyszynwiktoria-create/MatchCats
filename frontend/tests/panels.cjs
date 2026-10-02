@@ -11,7 +11,7 @@ const expectCount=async(locator,expected)=>{
  const fs=require('fs');
  const http=require('http');
  const root=path.resolve(__dirname,'..');
- const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/sky-garden.css':'sky-garden.css','/app.js':'app.js','/api.js':'api.js','/live.js':'live.js','/live.css':'live.css','/i18n.js':'i18n.js','/assets/sky-hero.jpg':'assets/sky-hero.jpg','/assets/sky-portraits.jpg':'assets/sky-portraits.jpg'};
+ const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/sky-garden.css':'sky-garden.css','/app.js':'app.js','/api.js':'api.js','/live.js':'live.js','/safety.js':'safety.js','/live.css':'live.css','/i18n.js':'i18n.js','/assets/sky-hero.jpg':'assets/sky-hero.jpg','/assets/sky-portraits.jpg':'assets/sky-portraits.jpg'};
  const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.jpg':'image/jpeg'};
  const server=http.createServer((req,res)=>{
   const file=allowed[new URL(req.url,'http://localhost').pathname];
