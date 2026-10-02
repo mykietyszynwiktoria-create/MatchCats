@@ -2,6 +2,15 @@
 // Polish is the source language. Dynamic UI labels and static form labels share
 // this dictionary; breeder input and messages are never translated.
 const matchCatsEnglish = {
+ 'MatchCats — Start':'MatchCats — Home','Twoja hodowla w jednym miejscu.':'Your cattery in one place.',
+ 'Poznaj koty.':'Meet the cats.','Poznaj ich hodowców.':'Meet their breeders.',
+ 'Odkrywaj profile, poznawaj hodowców i dbaj o swoją hodowlę.':'Discover profiles, meet breeders and care for your cattery.',
+ 'Szybkie wyszukiwanie kotów':'Quick cat search','Szukaj':'Search','Odkryj profile kotów':'Discover cat profiles',
+ 'Wygenerowane zdjęcie kota; profil demonstracyjny':'Generated cat photograph; demo profile',
+ 'Nie dodano zdjęcia kota':'No cat photo added','Nie dodano zdjęcia kota.':'No cat photo added.',
+ 'Wygenerowane zdjęcie demonstracyjne. Docelowo: zdjęcia dodane przez hodowcę.':'Generated demo photograph. In the full app: photos added by the breeder.',
+ 'Dodane profile są widoczne tylko w tej demonstracji na Twoim urządzeniu. Zdjęcia przykładowych kotów są wygenerowane, a nowe profile nie mają zdjęcia.':'Added profiles appear only in this demo on your device. Sample cat photos are generated, and new profiles do not have a photo.',
+ 'Przykładowe dane · Wygenerowane zdjęcia · Zapis lokalny':'Sample data · Generated photos · Local storage',
  'Start':'Home','Szukaj kota':'Find a cat','Rozmowy':'Conversations','Co chcesz dziś zrobić w swojej hodowli?':'What would you like to do for your cattery today?',
  'POZNAJ KOTY I ICH HODOWCÓW':'MEET CATS AND THEIR BREEDERS','Znajdź partnera':'Find a partner','dla swojego kota.':'for your cat.','Wybierz rasę i płeć, sprawdź profil kota i porozmawiaj z jego właścicielem.':'Choose a breed and sex, explore a cat’s profile and talk with the owner.',
  'Szukaj partnera':'Find a partner','＋ Dodaj swojego kota':'+ Add your cat','Wyszukaj kota':'Find a cat','Sprawdź profil':'View the profile','Napisz do hodowcy':'Contact the breeder','Jak zacząć':'How to get started','Najważniejsze czynności':'Main actions','Najpierw poznaj kota':'Get to know the cat first','Przeglądaj koty innych hodowców':'Browse cats from other breeders','Koty innych hodowców':'Cats from other breeders','Otwórz profil, aby poznać kota i jego właściciela.':'Open a profile to get to know the cat and its owner.','Wszystkie koty →':'All cats →','Otwórz rozmowy →':'Open conversations →','Sprawdź dokumenty →':'Review documents →','Dodaj wiadomość':'Add message',

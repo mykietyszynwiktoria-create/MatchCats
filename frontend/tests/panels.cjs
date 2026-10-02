@@ -1,12 +1,12 @@
-﻿const { chromium } = require('playwright');
+const { chromium } = require('playwright');
 const path=require('path');
 const assert=require('assert/strict');
 (async()=>{
  const fs=require('fs');
  const http=require('http');
  const root=path.resolve(__dirname,'..');
- const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/app.js':'app.js','/i18n.js':'i18n.js'};
- const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
+ const allowed={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/sky-garden.css':'sky-garden.css','/app.js':'app.js','/i18n.js':'i18n.js','/assets/sky-hero.jpg':'assets/sky-hero.jpg','/assets/sky-portraits.jpg':'assets/sky-portraits.jpg'};
+ const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.jpg':'image/jpeg'};
  const server=http.createServer((req,res)=>{
   const file=allowed[new URL(req.url,'http://localhost').pathname];
   if(!file){res.writeHead(404);res.end();return;}
@@ -21,11 +21,20 @@ const assert=require('assert/strict');
  const page=await browser.newPage({viewport:{width:1440,height:1100}});
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url);
+ await page.locator('#dashboard-search select[name="breed"]').selectOption('Maine Coon');
+ await page.locator('#dashboard-search select[name="sex"]').selectOption('MALE');
+ await page.locator('#dashboard-search input[name="city"]').fill('Kraków');
+ await page.locator('#dashboard-search button').click();
+ await page.waitForURL('**/#search');
+ assert.equal(await page.locator('#filters input[name="city"]').inputValue(),'Kraków');
+ assert.equal(await page.locator('#search-results .cat-card').count(),1);
+ await page.goto(url+'/#dashboard');
  assert.equal(await page.locator('.quick-action').count(),3);
  await page.locator('.quick-action[href="#cats"]').click();
  assert.equal(await page.locator('.cat-card').count(),2);
  await page.locator('a[href="#dashboard"]').first().click();
  await page.locator('.quick-action[href="#messages"]').click();
+ await page.locator('.chat-pane').waitFor({state:'visible'});
  assert.equal(await page.locator('.chat-pane').count(),1);
  await page.locator('a[href="#dashboard"]').first().click();
  await page.locator('.quick-action[href="#search"]').click();
