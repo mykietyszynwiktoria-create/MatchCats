@@ -46,6 +46,56 @@ class ChatApiTests {
         return json.readTree(response).get("id").asLong();
     }
 
+    long send(long chat,String owner) throws Exception {
+        var response=mvc.perform(post("/chats/"+chat+"/messages").with(user(owner)).with(csrf()).contentType("application/json").content("{\"text\":\"Unread test\"}"))
+            .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return json.readTree(response).get("id").asLong();
+    }
+    void read(long chat,String owner,long... ids) throws Exception {
+        mvc.perform(post("/chats/"+chat+"/read").with(user(owner)).with(csrf()).contentType("application/json")
+            .content(json.writeValueAsString(Map.of("messageIds",ids)))).andExpect(status().isNoContent());
+    }
+
+    @Test void unreadCountsOnlyReceivedMessagesAndExplicitReadPersists() throws Exception {
+        breeder("alice");breeder("bob");breeder("eve");long chat=contact(cat("bob"),"alice");
+        long first=send(chat,"alice"),second=send(chat,"alice");send(chat,"bob");
+        mvc.perform(get("/chats/unread").with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(2)).andExpect(jsonPath("$.unreadConversations").value(1));
+        mvc.perform(get("/chats/unread").with(user("alice"))).andExpect(jsonPath("$.unreadMessages").value(1));
+        mvc.perform(get("/chats/unread").with(user("eve"))).andExpect(jsonPath("$.unreadMessages").value(0));
+        mvc.perform(get("/chats/"+chat+"/messages").with(user("bob")).param("size","1")).andExpect(status().isOk());
+        mvc.perform(get("/chats/"+chat).with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(2));
+        read(chat,"bob",first);read(chat,"bob",first);
+        entities.flush();entities.clear();
+        mvc.perform(get("/chats/"+chat).with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(1));
+        long newer=send(chat,"alice");read(chat,"bob",second);
+        mvc.perform(get("/chats/unread").with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(1));
+        read(chat,"bob",newer);
+        mvc.perform(get("/chats/unread").with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(0));
+    }
+
+    @Test void readReceiptsRequireMembershipCsrfAndValidReceivedIds() throws Exception {
+        breeder("alice");breeder("bob");breeder("eve");long chat=contact(cat("bob"),"alice");long message=send(chat,"alice");
+        long otherChat=contact(cat("eve"),"alice");long otherMessage=send(otherChat,"alice");
+        for(String owner:java.util.List.of("eve","alice")) {
+            mvc.perform(post("/chats/"+chat+"/read").with(user(owner)).with(csrf()).contentType("application/json").content(json.writeValueAsString(Map.of("messageIds",java.util.List.of(message)))))
+                .andExpect(status().is(owner.equals("eve")?403:400));
+        }
+        mvc.perform(post("/chats/"+chat+"/read").with(user("bob")).contentType("application/json").content("{\"messageIds\":[1]}")) .andExpect(status().isForbidden());
+        for(var ids:java.util.List.of(java.util.List.of(message,otherMessage),java.util.List.of(-1L),java.util.List.of(999999999L)))
+            mvc.perform(post("/chats/"+chat+"/read").with(user("bob")).with(csrf()).contentType("application/json").content(json.writeValueAsString(Map.of("messageIds",ids)))) .andExpect(status().isBadRequest());
+        mvc.perform(get("/chats/"+chat).with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(1));
+        mvc.perform(post("/chats/"+chat+"/read").with(user("bob")).with(csrf()).contentType("application/json").content("{\"messageIds\":[]}")) .andExpect(status().isBadRequest());
+        mvc.perform(get("/chats/unread")).andExpect(status().isUnauthorized());
+    }
+
+    @Test void accountDeletionRemovesReadReceiptsWithConversation() throws Exception {
+        breeder("alice");breeder("bob");long chat=contact(cat("bob"),"alice");long message=send(chat,"alice");read(chat,"bob",message);
+        assertEquals(1,((Number)entities.createNativeQuery("select count(*) from mc_message_reads where message_id=:id").setParameter("id",message).getSingleResult()).intValue());
+        mvc.perform(delete("/users/me").with(user("alice")).with(csrf()).contentType("application/json").content("{\"currentPassword\":\"StrongTestPassword!\"}")) .andExpect(status().isNoContent());
+        assertEquals(0,((Number)entities.createNativeQuery("select count(*) from mc_message_reads where message_id=:id").setParameter("id",message).getSingleResult()).intValue());
+        mvc.perform(get("/chats/unread").with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(0));
+    }
+
     @Test void privateMessagesPersistAndAuthorsCannotBeForged() throws Exception {
         int alice = breeder("alice"); breeder("bob"); breeder("eve");
         int bobCat = cat("bob"); long chat = contact(bobCat, "alice");

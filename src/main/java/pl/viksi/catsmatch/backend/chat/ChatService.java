@@ -15,27 +15,29 @@ import java.util.List;
 public class ChatService {
     public record MessageInput(@NotBlank @Size(max = 4000) String text) {}
     public record MessageView(Long id, Long conversationId, Integer authorId, String text, Instant createdAt) {}
-    public record ChatView(Long id, Integer firstOwnerId, Integer secondOwnerId, Integer contextCatId, Instant createdAt, boolean contactBlocked) {}
+    public record ChatView(Long id, Integer firstOwnerId, Integer secondOwnerId, Integer contextCatId, Instant createdAt, boolean contactBlocked, long unreadMessages) {}
 
     private final ConversationRepository conversations;
     private final MessageRepository messages;
     private final AccountRepository accounts;
     private final CatService cats;
     private final pl.viksi.catsmatch.backend.safety.SafetyService safety;
+    private final ChatReadService reads;
 
     public ChatService(ConversationRepository conversations, MessageRepository messages,
-                       AccountRepository accounts, CatService cats, pl.viksi.catsmatch.backend.safety.SafetyService safety) {
+                       AccountRepository accounts, CatService cats, pl.viksi.catsmatch.backend.safety.SafetyService safety, ChatReadService reads) {
         this.conversations = conversations;
         this.messages = messages;
         this.accounts = accounts;
         this.cats = cats;
         this.safety = safety;
+        this.reads = reads;
     }
 
-    private ChatView view(Conversation c) {
+    private ChatView view(Conversation c, int owner) {
         boolean unavailable=accounts.findById(c.firstOwnerId).map(a->a.suspended).orElse(true)
             || accounts.findById(c.secondOwnerId).map(a->a.suspended).orElse(true);
-        return new ChatView(c.id, c.firstOwnerId, c.secondOwnerId, c.contextCatId, c.createdAt, unavailable || safety.blocked(c.firstOwnerId,c.secondOwnerId));
+        return new ChatView(c.id, c.firstOwnerId, c.secondOwnerId, c.contextCatId, c.createdAt, unavailable || safety.blocked(c.firstOwnerId,c.secondOwnerId), reads.unread(c.id,owner));
     }
 
     private Conversation accessible(long id, int owner) {
@@ -70,18 +72,20 @@ public class ChatService {
         safety.requireContact(first, second);
         Conversation conversation = conversations.findByFirstOwnerIdAndSecondOwnerId(first, second)
             .orElseGet(() -> conversations.saveAndFlush(new Conversation(first, second, catId)));
-        return view(conversation);
+        return view(conversation,owner);
     }
 
     @Transactional(readOnly = true)
     public CatService.PageView<ChatView> list(Authentication auth, int page, int size) {
-        var result = conversations.belongingTo(cats.userId(auth), page(page, size, Sort.by("id").descending()));
-        return new CatService.PageView<>(result.map(this::view).getContent(), result.getTotalElements(), page, size);
+        int owner=cats.userId(auth);
+        var result = conversations.belongingTo(owner, page(page, size, Sort.by("id").descending()));
+        return new CatService.PageView<>(result.map(c -> view(c,owner)).getContent(), result.getTotalElements(), page, size);
     }
 
     @Transactional(readOnly = true)
     public ChatView get(long id, Authentication auth) {
-        return view(accessible(id, cats.userId(auth)));
+        int owner=cats.userId(auth);
+        return view(accessible(id,owner),owner);
     }
 
     @Transactional(readOnly = true)
