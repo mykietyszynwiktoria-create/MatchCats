@@ -70,7 +70,7 @@ GitHub Actions runs tests/build with Java 21 and a temporary PostgreSQL 16 datab
 
 ## Interface preview
 
-See [frontend instructions](frontend/README.md). Browser localStorage is demonstration storage only. The frontend's local cat shape (`birth`, `own`, sample document labels) differs from the backend contract (`birthDate`, `ownerId`, health, country and version). API integration must explicitly map fields and replace local demo operations with authenticated server requests.
+See [frontend instructions](frontend/README.md). Normal application routes use authenticated server requests and PostgreSQL. The separate `/?demo=1` interface stores sample data in browser localStorage. The live interface maps form fields to backend contracts and sends record versions when updating cats.
 
 ## Implementation
 

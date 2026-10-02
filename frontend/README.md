@@ -25,7 +25,7 @@ The selected design uses a light blue background, horizontal desktop navigation,
 
 ## Run the interface check
 
-Requirements: Node.js and a Playwright browser. From this directory, run npm install, then npx playwright install chromium, then npm test.
+Requirements: Node.js 20 or newer (CI uses Node.js 22) and a Playwright browser. From this directory, run `npm ci`, then `npx playwright install chromium`, then `npm test`.
 
 The check starts its own temporary local HTTP server and closes it when finished. Set CHROME_PATH to use an installed Chrome executable instead of Playwright's downloaded Chromium. It uses an isolated browser profile and does not change the user's demo data.
 
