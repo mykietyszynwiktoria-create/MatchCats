@@ -46,7 +46,8 @@ public class PasswordRecovery {
         configured();
         var found=accounts.lockByEmail(input.email().strip().toLowerCase(Locale.ROOT));
         if(found.isEmpty())return; // Same success response for an unknown address.
-        Account account=found.get();tokens.deleteAllByAccountId(account.id);tokens.flush();
+        Account account=found.get();if(account.suspended)return;
+        tokens.deleteAllByAccountId(account.id);tokens.flush();
         byte[] bytes=new byte[32];random.nextBytes(bytes);String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         tokens.saveAndFlush(new PasswordResetToken(hash(token),account.id,Instant.now().plusSeconds(900)));
         var mail=new SimpleMailMessage();mail.setFrom(from);mail.setTo(account.email);mail.setSubject("MatchCats - password reset");

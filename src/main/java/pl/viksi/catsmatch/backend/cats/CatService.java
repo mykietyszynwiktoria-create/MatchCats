@@ -42,7 +42,11 @@ public class CatService {
         b.kennel=input.kennel().strip();b.city=input.city().strip();b.country=input.country().strip();b.bio=input.bio().strip();
         return breederView(breeders.saveAndFlush(b));
     }
-    public Cat cat(Integer id) { return cats.findById(id).orElseThrow(() -> ApiException.missing("Cat")); }
+    public Cat cat(Integer id) {
+        Cat cat=cats.findById(id).orElseThrow(() -> ApiException.missing("Cat"));
+        if(accounts.currentOwnerSuspended(cat.ownerId))throw ApiException.missing("Cat");
+        return cat;
+    }
     public Cat owned(Integer id, Authentication auth) {
         Cat c=cat(id);if(!c.ownerId.equals(userId(auth))) throw ApiException.forbidden();return c;
     }
@@ -64,7 +68,12 @@ public class CatService {
     @Transactional public void delete(Integer id, Authentication auth) { cats.delete(owned(id,auth));cats.flush(); }
     public PageView<CatView> search(String breed, Cat.Sex sex, String city, Boolean available, Integer ownerId, int page, int size) {
         if(page<0 || size<1 || size>100) throw ApiException.invalid("Page must be non-negative and size between 1 and 100");
-        Specification<Cat> spec=(root,q,cb) -> cb.conjunction();
+        Specification<Cat> spec=(root,q,cb) -> {
+            var suspended=q.subquery(Integer.class);
+            var account=suspended.from(pl.viksi.catsmatch.backend.account.Account.class);
+            suspended.select(account.get("id")).where(cb.isTrue(account.get("suspended")));
+            return cb.not(root.get("ownerId").in(suspended));
+        };
         if(breed!=null) spec=spec.and((r,q,cb)->cb.equal(cb.lower(r.get("breed")),breed.strip().toLowerCase(Locale.ROOT)));
         if(sex!=null) spec=spec.and((r,q,cb)->cb.equal(r.get("sex"),sex));
         if(city!=null) spec=spec.and((r,q,cb)->cb.equal(cb.lower(r.get("city")),city.strip().toLowerCase(Locale.ROOT)));

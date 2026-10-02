@@ -20,12 +20,14 @@ public class MatchingService {
     private final CatRepository repository;
     private final CatPairRepository pairs;
     private final ChatService chats;
+    private final pl.viksi.catsmatch.backend.safety.SafetyService safety;
 
-    public MatchingService(CatService cats, CatRepository repository, CatPairRepository pairs, ChatService chats) {
+    public MatchingService(CatService cats, CatRepository repository, CatPairRepository pairs, ChatService chats, pl.viksi.catsmatch.backend.safety.SafetyService safety) {
         this.cats = cats;
         this.repository = repository;
         this.pairs = pairs;
         this.chats = chats;
+        this.safety = safety;
     }
 
     private void available(Cat cat) {
@@ -51,6 +53,13 @@ public class MatchingService {
             cb.notEqual(root.get("sex"), source.sex),
             cb.isTrue(root.get("available")),
             cb.equal(root.get("health"), Cat.Health.HEALTHY));
+        var excluded=safety.excludedContacts(source.ownerId);
+        if(!excluded.isEmpty())spec=spec.and((root,query,cb)->cb.not(root.get("ownerId").in(excluded)));
+        spec=spec.and((root,query,cb)->{
+            var suspended=query.subquery(Integer.class);var account=suspended.from(pl.viksi.catsmatch.backend.account.Account.class);
+            suspended.select(account.get("id")).where(cb.isTrue(account.get("suspended")));
+            return cb.not(root.get("ownerId").in(suspended));
+        });
         var result = repository.findAll(spec, page(page, size));
         return new CatService.PageView<>(result.map(cats::view).getContent(), result.getTotalElements(), page, size);
     }
@@ -73,8 +82,8 @@ public class MatchingService {
         available(candidate);
         int first = Math.min(source.id, candidate.id);
         int second = Math.max(source.id, candidate.id);
+        long chatId = chats.contact(candidate.id, auth).id();
         CatPair pair = pairs.findByFirstCatIdAndSecondCatId(first, second).orElseGet(() -> {
-            long chatId = chats.contact(candidate.id, auth).id();
             return pairs.saveAndFlush(new CatPair(first, second, chatId));
         });
         return view(pair);

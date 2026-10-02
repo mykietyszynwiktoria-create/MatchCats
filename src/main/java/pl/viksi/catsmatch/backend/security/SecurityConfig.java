@@ -20,7 +20,7 @@ public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(12); }
     @Bean UserDetailsService userDetailsService(AccountRepository accounts) {
         return username -> accounts.findByUsername(username.toLowerCase(Locale.ROOT))
-            .map(a -> User.withUsername(a.username).password(a.passwordHash).roles("BREEDER").build())
+            .map(a -> User.withUsername(a.username).password(a.passwordHash).disabled(a.suspended).roles("BREEDER").build())
             .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
     }
     @Bean AuthenticationManager authenticationManager(UserDetailsService users, PasswordEncoder encoder) {
@@ -45,7 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> a
                 .requestMatchers(HttpMethod.GET, "/health", "/auth/csrf", "/", "/index.html",
                     "/styles.css", "/sky-garden.css", "/live.css", "/i18n.js", "/api.js",
-                    "/live.js", "/app.js", "/assets/*.jpg").permitAll()
+                    "/live.js", "/safety.js", "/app.js", "/assets/*.jpg").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/password/request", "/auth/password/reset").permitAll()
                 .requestMatchers("/error").permitAll().anyRequest().authenticated())
             .requestCache(c -> c.disable()).formLogin(c -> c.disable()).httpBasic(c -> c.disable())

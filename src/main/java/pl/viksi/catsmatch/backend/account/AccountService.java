@@ -48,9 +48,12 @@ public class AccountService {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "Sign in first");
         }
-        return accounts.findByUsername(authentication.getName()).orElseThrow(() -> ApiException.missing("Account"));
+        Account account=accounts.findByUsername(authentication.getName()).orElseThrow(() -> ApiException.missing("Account"));
+        if(account.suspended)throw new ApiException(HttpStatus.FORBIDDEN,"ACCOUNT_SUSPENDED","Account access is suspended");
+        return account;
     }
     public void lockLogin(String username){accounts.lockByUsername(username.toLowerCase(Locale.ROOT));}
+    public boolean currentOwnerSuspended(Integer id){return accounts.findById(id).map(a->a.suspended).orElse(true);}
     @Transactional
     public UserView update(Authentication authentication, ProfileInput input) {
         Account account = accounts.lockAccounts(java.util.List.of(current(authentication).id)).getFirst();

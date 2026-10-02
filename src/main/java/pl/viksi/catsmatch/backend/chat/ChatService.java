@@ -15,23 +15,27 @@ import java.util.List;
 public class ChatService {
     public record MessageInput(@NotBlank @Size(max = 4000) String text) {}
     public record MessageView(Long id, Long conversationId, Integer authorId, String text, Instant createdAt) {}
-    public record ChatView(Long id, Integer firstOwnerId, Integer secondOwnerId, Integer contextCatId, Instant createdAt) {}
+    public record ChatView(Long id, Integer firstOwnerId, Integer secondOwnerId, Integer contextCatId, Instant createdAt, boolean contactBlocked) {}
 
     private final ConversationRepository conversations;
     private final MessageRepository messages;
     private final AccountRepository accounts;
     private final CatService cats;
+    private final pl.viksi.catsmatch.backend.safety.SafetyService safety;
 
     public ChatService(ConversationRepository conversations, MessageRepository messages,
-                       AccountRepository accounts, CatService cats) {
+                       AccountRepository accounts, CatService cats, pl.viksi.catsmatch.backend.safety.SafetyService safety) {
         this.conversations = conversations;
         this.messages = messages;
         this.accounts = accounts;
         this.cats = cats;
+        this.safety = safety;
     }
 
     private ChatView view(Conversation c) {
-        return new ChatView(c.id, c.firstOwnerId, c.secondOwnerId, c.contextCatId, c.createdAt);
+        boolean unavailable=accounts.findById(c.firstOwnerId).map(a->a.suspended).orElse(true)
+            || accounts.findById(c.secondOwnerId).map(a->a.suspended).orElse(true);
+        return new ChatView(c.id, c.firstOwnerId, c.secondOwnerId, c.contextCatId, c.createdAt, unavailable || safety.blocked(c.firstOwnerId,c.secondOwnerId));
     }
 
     private Conversation accessible(long id, int owner) {
@@ -63,6 +67,7 @@ public class ChatService {
         // Both directions acquire the same locks in the same order.
         // A second request waits, then reuses the conversation created by the first.
         accounts.lockAccounts(List.of(first, second));
+        safety.requireContact(first, second);
         Conversation conversation = conversations.findByFirstOwnerIdAndSecondOwnerId(first, second)
             .orElseGet(() -> conversations.saveAndFlush(new Conversation(first, second, catId)));
         return view(conversation);
@@ -89,7 +94,9 @@ public class ChatService {
     @Transactional
     public MessageView send(long id, Authentication auth, MessageInput input) {
         int author = cats.userId(auth);
-        accessible(id, author);
+        Conversation chat=accessible(id, author);
+        accounts.lockAccounts(List.of(chat.firstOwnerId,chat.secondOwnerId));
+        safety.requireContact(chat.firstOwnerId,chat.secondOwnerId);
         return view(messages.saveAndFlush(new Message(id, author, input.text().strip())));
     }
 

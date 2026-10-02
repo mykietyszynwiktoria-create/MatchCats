@@ -16,7 +16,7 @@ public class SessionVersionFilter extends OncePerRequestFilter {
         var session=request.getSession(false);
         if(auth!=null && auth.isAuthenticated() && session!=null && session.getAttribute(ATTRIBUTE) instanceof Long version) {
             var account=accounts.findByUsername(auth.getName());
-            if(account.isEmpty() || account.get().securityVersion!=version) {
+            if(account.isEmpty() || account.get().suspended || account.get().securityVersion!=version) {
                 session.invalidate();SecurityContextHolder.clearContext();
             }
         }
