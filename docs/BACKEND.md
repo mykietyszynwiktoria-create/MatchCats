@@ -57,10 +57,24 @@ For tests, use a separate empty database and set `TEST_DB_URL`, `TEST_DB_USER` a
 
 Migration `V3__conversations_and_messages.sql` adds conversations/messages. Removing a cat clears the conversation's context reference and preserves its messages. This module does not implement real-time delivery, notifications, read receipts, blocking/reporting or attachments. Existing participants can continue an existing conversation even if a cat later becomes unavailable.
 
+## Candidate filtering and selected pairs
+
+`GET /cats/{sourceId}/candidates` is restricted to the source cat's owner. It returns available cats of the same case-insensitive breed and opposite sex, from other owners, with owner-declared HEALTHY status. The source must also be available and HEALTHY. This is profile filtering, not genetic or veterinary suitability assessment. Breed names remain user-entered text. Pagination is zero-based, default size 20, maximum 100; results use ascending IDs.
+
+`POST /cats/{sourceId}/matches` accepts `{ "candidateId": 123 }`. The service checks source ownership and both cats' current eligibility, locks both cat rows in ID order, persists a unique normalized cat pair and opens/reuses its owners' private conversation. Success returns 200 for both first and repeated selections. A reverse selection reuses the same pair. The record represents a proposed pairing for discussion, not mutual consent or confirmed breeding. No message is sent automatically.
+
+`GET /cats/{sourceId}/matches` lists previously selected pairs for the source owner, including `conversationId`. Only the two owners can see the corresponding pair through their own cat's route. Deleting either cat deletes its saved pair; its conversation and messages remain. Changing availability/breed later can make an old pair ineligible; stored pairs remain historical proposals and are not automatically approved. A repeat POST always rechecks eligibility.
+
+Migration `V4__cat_pairs.sql` enforces ordered unique cat pairs. API tests verify filtering, persistence, reversed selections, access control, invalid input and deletion. A separate concurrency test verifies two simultaneous opposite-direction selections produce one pair and one conversation.
+
 ## Still outstanding
 
-Matching, document uploads/permissions, password recovery, account lifecycle, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
+Document uploads/permissions, verification of breeder documents, password recovery, account lifecycle, real-time chat and moderation, production deployment, and API integration with the prototype panels remain unfinished in the replacement backend. Store installers for Windows, Android and iOS are also not yet implemented.
 
 ## Verification for the profile module
 
 On 2 October 2026, Java 21 test/build passed against PostgreSQL 16: eight tests, zero failures/errors. A separate live HTTP check passed 17 requests covering account/session/CSRF setup, profile persistence, filters, stale-update conflict, deletion and logout. The local Docker Compose configuration also passed `docker compose config --quiet`; this validates its configuration, not a local Docker database startup.
+
+## Verification for conversations and pair selection
+
+On 2 October 2026, the complete Java 21 test/build passed against PostgreSQL 16: 15 tests, zero failures/errors. This includes two simultaneous-request tests for conversation and pair uniqueness. A separate built-JAR HTTP check passed 32 requests with real session cookies and CSRF tokens, covering registration/login, candidate listing, reversed pair selection, message exchange, third-party read/write denial, missing-CSRF denial, cat deletion and logout. Its three temporary accounts were removed from the isolated development database after the check. The prototype frontend was not connected or changed by this backend module.

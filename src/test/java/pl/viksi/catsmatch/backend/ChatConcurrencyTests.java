@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import pl.viksi.catsmatch.backend.account.AccountService;
 import pl.viksi.catsmatch.backend.cats.*;
 import pl.viksi.catsmatch.backend.chat.ChatService;
+import pl.viksi.catsmatch.backend.matching.MatchingService;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
@@ -20,9 +21,18 @@ class ChatConcurrencyTests {
     @Autowired AccountService accounts;
     @Autowired CatService cats;
     @Autowired ChatService chats;
+    @Autowired MatchingService matches;
     @Autowired JdbcTemplate database;
 
     @Test void simultaneousContactInOppositeDirectionsCreatesOnlyOneConversation() throws Exception {
+        simultaneousSelection(false);
+    }
+
+    @Test void simultaneousPairSelectionCreatesOnlyOnePairAndConversation() throws Exception {
+        simultaneousSelection(true);
+    }
+
+    private void simultaneousSelection(boolean selectPair) throws Exception {
         List<Integer> createdAccounts = new ArrayList<>();
         ExecutorService workers = Executors.newFixedThreadPool(2);
         try {
@@ -40,12 +50,24 @@ class ChatConcurrencyTests {
                     LocalDate.of(2022, 1, 1), "Warsaw", "Poland", "", true)).id();
             }
             CountDownLatch start = new CountDownLatch(1);
-            Future<Long> first = workers.submit(() -> { start.await(); return chats.contact(catIds[1], owners[0]).id(); });
-            Future<Long> second = workers.submit(() -> { start.await(); return chats.contact(catIds[0], owners[1]).id(); });
+            Future<Long> first = workers.submit(() -> {
+                start.await();
+                return selectPair ? matches.select(catIds[0], owners[0], new MatchingService.Selection(catIds[1])).id()
+                    : chats.contact(catIds[1], owners[0]).id();
+            });
+            Future<Long> second = workers.submit(() -> {
+                start.await();
+                return selectPair ? matches.select(catIds[1], owners[1], new MatchingService.Selection(catIds[0])).id()
+                    : chats.contact(catIds[0], owners[1]).id();
+            });
             start.countDown();
             assertEquals(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS));
             assertEquals(1, chats.list(owners[0], 0, 20).total());
             assertEquals(1, chats.list(owners[1], 0, 20).total());
+            if (selectPair) {
+                assertEquals(1, matches.list(catIds[0], owners[0], 0, 20).total());
+                assertEquals(1, matches.list(catIds[1], owners[1], 0, 20).total());
+            }
         } finally {
             workers.shutdownNow();
             workers.awaitTermination(20, TimeUnit.SECONDS);
