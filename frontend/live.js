@@ -2,7 +2,7 @@
 if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const api = MatchCatsAPI.request;
   const main = document.querySelector('#main');
-  let user = null, breeder = null, language = 'pl', revision = 0, flash = '', flashRoute = '', editingCat = null;
+  let user = null, breeder = null, language = 'pl', revision = 0, flash = '', flashRoute = '';
   let searchFilters = {}, listPage = 0, chatPage = 0;
   try { language = localStorage.getItem('matchcats-language') === 'en' ? 'en' : 'pl'; } catch {}
   const t = (pl, en) => language === 'en' ? en : pl;
@@ -11,6 +11,10 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const title = (heading, description='') => `<div class="heading"><div><h1>${esc(heading)}</h1><p class="muted">${esc(description)}</p></div></div>`;
   const field = (name, label, type='text', value='', attrs='') => `<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
   const formError = '<div class="live-error" role="alert" id="live-error" hidden></div>';
+  function icon(name) {
+    const shapes={dashboard:'<path d="m3 10 9-7 9 7v10H15v-7H9v7H3Z"/>',cats:'<ellipse cx="12" cy="16" rx="6" ry="4"/><ellipse cx="5" cy="9" rx="2" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6" rx="2" ry="3"/><ellipse cx="20" cy="10" rx="2" ry="3"/>',search:'<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',messages:'<path d="M21 11a8 8 0 0 1-8 8H8l-5 3V11a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M7 10h10M7 14h6"/>',documents:'<path d="M5 3h10l4 4v14H5Z M15 3v5h4M8 12h8M8 16h8"/>',settings:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>'};
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.cats)+'</svg>';
+  }
   function message(error) {
     const messages = {
       NETWORK:t('Nie można połączyć się z serwerem. Sprawdź połączenie i spróbuj ponownie.','Cannot reach the server. Check your connection and try again.'),
@@ -53,7 +57,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const current=nav.find(x=>x[0]===route)?.[1]||t('Profil','Profile');
     document.querySelector('#breadcrumb').textContent=current;
     document.title=`MatchCats · ${user?current:t('Twoje konto','Your account')}`;
-    document.querySelector('#navigation').innerHTML=user?nav.map(([key,label])=>`<a href="#${key}" class="nav-item ${key===route?'active':''}" ${key===route?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${{dashboard:'⌂',cats:'♧',search:'⌕',messages:'✉',documents:'▤',settings:'⚙'}[key]}</span><span class="nav-text">${label}</span></a>`).join(''):'';
+    document.querySelector('#navigation').innerHTML=user?nav.map(([key,label])=>`<a href="#${key}" class="nav-item ${key===route?'active':''}" ${key===route?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${icon(key)}</span><span class="nav-text">${label}</span></a>`).join(''):'';
     document.querySelector('#top-profile').textContent=user?.firstName?.slice(0,1)||'•';
     document.querySelector('#top-profile').setAttribute('aria-label',t('Ustawienia konta','Account settings'));
   }
@@ -95,7 +99,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   const sex = value => value==='MALE'?t('Kocur','Male'):t('Kotka','Female');
   const health = value => ({UNKNOWN:t('Niepodane','Unknown'),HEALTHY:t('Zdrowy według właściciela','Owner-declared healthy'),SICK:t('Chory według właściciela','Owner-declared sick')})[value];
-  const photo = cat => cat.hasPhoto ? `<div class="cat-picture"><img class="live-cat-photo" src="/cats/${cat.id}/photo" alt="${esc(cat.name)}"></div>` : `<div class="cat-picture live-photo-empty" role="img" aria-label="${t('Brak zdjęcia','No photo')}">♧</div>`;
+  const photo = cat => cat.hasPhoto ? `<div class="cat-picture"><img class="live-cat-photo" src="/cats/${cat.id}/photo" alt="${esc(cat.name)}"></div>` : `<div class="cat-picture live-photo-empty" role="img" aria-label="${t('Brak zdjęcia','No photo')}">${icon('cats')}</div>`;
   function photoForm(cat) {
     return `<form id="photo-upload" data-cat-id="${cat.id}"><label>${t('Zdjęcie JPEG lub PNG (do 5 MB, 24 megapikseli)','JPEG or PNG photo (up to 5 MB, 24 megapixels)')}<input type="file" name="file" accept="image/png,image/jpeg" required></label><button class="button primary" type="submit">${t('Zapisz zdjęcie','Save photo')}</button>${cat.hasPhoto?`<button class="button secondary" type="button" data-delete-photo="${cat.id}">${t('Usuń zdjęcie','Remove photo')}</button>`:''}</form>`;
   }
@@ -116,9 +120,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   function catForm(cat) {
     if(cat && cat.ownerId!==user.id)throw new MatchCatsAPI.APIError(403,'FORBIDDEN');
-    editingCat=cat;
     const options=(values,selected,labels)=>values.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${esc(labels(v))}</option>`).join('');
-    return title(cat?t('Edytuj kota','Edit cat'):t('Dodaj kota','Add a cat'))+`<form id="live-cat-form" class="panel live-form">${formError}${field('name',t('Imię kota','Cat name'),'text',cat?.name,'required maxlength="100"')}${field('breed',t('Rasa','Breed'),'text',cat?.breed,'required maxlength="100"')}<label>${t('Płeć','Sex')}<select name="sex">${options(['FEMALE','MALE'],cat?.sex,sex)}</select></label><label>${t('Stan zdrowia zadeklarowany przez właściciela','Owner-declared health')}<select name="health">${options(['UNKNOWN','HEALTHY','SICK'],cat?.health,health)}</select></label>${field('birthDate',t('Data urodzenia','Date of birth'),'date',cat?.birthDate,'required max="'+new Date().toLocaleDateString('sv-SE')+'"')}${field('city',t('Miasto','City'),'text',cat?.city||breeder.city,'required maxlength="100"')}${field('country',t('Kraj','Country'),'text',cat?.country||breeder.country,'required maxlength="100"')}<label>${t('Opis','Description')}<textarea name="description" maxlength="2000">${esc(cat?.description)}</textarea></label><label class="check"><input name="available" type="checkbox" ${cat?.available?'checked':''}>${t('Dostępny do kontaktu (wymaga deklaracji zdrowia)','Available for contact (requires healthy declaration)')}</label><div class="live-tools"><button class="button primary" type="submit">${t('Zapisz kota','Save cat')}</button>${button(t('Anuluj','Cancel'),'cats','secondary')}</div></form>`;
+    return title(cat?t('Edytuj kota','Edit cat'):t('Dodaj kota','Add a cat'))+`<form id="live-cat-form" class="panel live-form" data-cat-id="${cat?.id||''}" data-version="${cat?.version??''}">${formError}${field('name',t('Imię kota','Cat name'),'text',cat?.name,'required maxlength="100"')}${field('breed',t('Rasa','Breed'),'text',cat?.breed,'required maxlength="100"')}<label>${t('Płeć','Sex')}<select name="sex">${options(['FEMALE','MALE'],cat?.sex,sex)}</select></label><label>${t('Stan zdrowia zadeklarowany przez właściciela','Owner-declared health')}<select name="health">${options(['UNKNOWN','HEALTHY','SICK'],cat?.health,health)}</select></label>${field('birthDate',t('Data urodzenia','Date of birth'),'date',cat?.birthDate,'required max="'+new Date().toLocaleDateString('sv-SE')+'"')}${field('city',t('Miasto','City'),'text',cat?.city||breeder.city,'required maxlength="100"')}${field('country',t('Kraj','Country'),'text',cat?.country||breeder.country,'required maxlength="100"')}<label>${t('Opis','Description')}<textarea name="description" maxlength="2000">${esc(cat?.description)}</textarea></label><label class="check"><input name="available" type="checkbox" ${cat?.available?'checked':''}>${t('Dostępny do kontaktu (wymaga deklaracji zdrowia)','Available for contact (requires healthy declaration)')}</label><div class="live-tools"><button class="button primary" type="submit">${t('Zapisz kota','Save cat')}</button>${button(t('Anuluj','Cancel'),'cats','secondary')}</div></form>`;
   }
   async function catDetail(id) {
     const cat=await api('/cats/'+id);const owner=await api('/owners/'+cat.ownerId);const docs=await api('/cats/'+id+'/documents');
@@ -206,8 +209,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       else if(form.id==='live-cat-form') {
         data.available=!!data.available;
         if(data.available && data.health!=='HEALTHY'){showError(t('Dostępność wymaga zadeklarowania stanu zdrowia jako zdrowy.','Availability requires owner-declared healthy status.'));return;}
-        const cat=editingCat?await api('/cats/'+editingCat.id,{method:'PUT',body:{version:editingCat.version,profile:data}}):await api('/cats',{method:'POST',body:data});
-        editingCat=null;location.hash='cat/'+cat.id;
+        const cat=form.dataset.catId?await api('/cats/'+form.dataset.catId,{method:'PUT',body:{version:Number(form.dataset.version),profile:data}}):await api('/cats',{method:'POST',body:data});
+        location.hash='cat/'+cat.id;
       }
       else if(form.id==='live-message-form'){if(!data.text.trim()){showError(t('Wpisz treść wiadomości.','Enter a message.'),form);return;}await api('/chats/'+form.dataset.chatId+'/messages',{method:'POST',body:{text:data.text.trim()}});const history=await api('/chats/'+form.dataset.chatId+'/messages?size=1');chatPage=Math.floor(Math.max(0,history.total-1)/50);await render();}
       else if(form.id==='document-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/documents',{method:'POST',body:new FormData(form)});await render();}

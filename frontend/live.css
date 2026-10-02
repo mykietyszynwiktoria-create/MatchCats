@@ -20,6 +20,7 @@
 .live-pages { display:flex; justify-content:space-between; gap:12px; margin:20px 0; }
 .live-photo-empty { display:grid; place-items:center; min-height:180px; font-size:50px; color:#4e7599; background:#e4f1fe; }
 .live-cat-photo { width:100%; height:100%; object-fit:cover; display:block; }
+.live-photo-empty svg { width:70px; height:70px; }
 #photo-upload { margin:18px 0 28px; }
 #photo-upload .button { margin:8px 5px 0 0; }
 body.signed-out #navigation, body.signed-out #top-profile, body.signed-out .topbar { display:none; }

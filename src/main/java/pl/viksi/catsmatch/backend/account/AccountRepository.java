@@ -8,6 +8,9 @@ import java.util.*;
 public interface AccountRepository extends JpaRepository<Account, Integer> {
     Optional<Account> findByUsername(String username);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Account a where a.username = :username")
+    Optional<Account> lockByUsername(@Param("username") String username);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Account a where a.email = :email")
     Optional<Account> lockByEmail(@Param("email") String email);
     boolean existsByUsername(String username);

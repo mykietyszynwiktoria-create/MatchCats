@@ -30,8 +30,10 @@ public class AccountController {
     @PostMapping("/users") @ResponseStatus(HttpStatus.CREATED)
     AccountService.UserView register(@Valid @RequestBody AccountService.Registration input) { return service.register(input); }
     @PostMapping("/auth/login")
+    @org.springframework.transaction.annotation.Transactional
     AccountService.UserView login(@Valid @RequestBody Login input, HttpServletRequest request, HttpServletResponse response) {
         attempts.check(request.getRemoteAddr(),input.username());
+        service.lockLogin(input.username());
         Authentication auth = manager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(input.username(), input.password()));
         attempts.success(request.getRemoteAddr(),input.username());
         if (request.getSession(false) != null) request.changeSessionId();

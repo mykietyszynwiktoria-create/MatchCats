@@ -50,6 +50,7 @@ public class AccountService {
         }
         return accounts.findByUsername(authentication.getName()).orElseThrow(() -> ApiException.missing("Account"));
     }
+    public void lockLogin(String username){accounts.lockByUsername(username.toLowerCase(Locale.ROOT));}
     @Transactional
     public UserView update(Authentication authentication, ProfileInput input) {
         Account account = accounts.lockAccounts(java.util.List.of(current(authentication).id)).getFirst();

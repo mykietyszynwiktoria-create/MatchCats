@@ -7,6 +7,12 @@ const suffix=Date.now().toString(36), usernames=['uie2e'+suffix+'a','uie2e'+suff
 const password='TemporaryTestPassword!';
 const passwords=[password,password];
 (async()=>{
+ let ready=false;
+ for(let attempt=0;attempt<60;attempt++){
+  try{const response=await fetch(url+'/health',{signal:AbortSignal.timeout(1000)});if(response.ok){ready=true;break;}}catch{}
+  await new Promise(resolve=>setTimeout(resolve,500));
+ }
+ if(!ready)throw Error('The local MatchCats server is not ready. Start the built application first.');
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
  const errors=[],contexts=[];
  const go=async(page,route)=>{const target=url+'/#'+route;if(page.url()===target)await page.reload();else await page.goto(target);await page.locator('.live-loading').waitFor({state:'hidden'});};
@@ -49,6 +55,17 @@ const passwords=[password,password];
   await alice.locator('#photo-upload [name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
   await alice.locator('#photo-upload [type="submit"]').click();await alice.locator('.live-cat-photo').waitFor();
   assert.ok(await alice.locator('.live-cat-photo').evaluate(img=>img.complete&&img.naturalWidth>0));
+  let release;const blocked=new Promise(resolve=>{release=resolve;});
+  await alice.route('**/cats/'+aliceCat,async route=>{await blocked;await route.continue();});
+  const loading=alice.waitForRequest('**/cats/'+aliceCat);await alice.goto(url+'/#edit-cat/'+aliceCat);await loading;
+  await alice.evaluate(()=>{location.hash='new-cat';});await alice.locator('#live-cat-form').waitFor();
+  const oldResponse=alice.waitForResponse('**/cats/'+aliceCat);release();await oldResponse;
+  await alice.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await alice.unroute('**/cats/'+aliceCat);
+  await fill(alice,'live-cat-form',{name:'Race Test Cat',breed:'Maine Coon',birthDate:'2022-01-01'});
+  const created=alice.waitForResponse(r=>r.url().endsWith('/cats')&&r.request().method()==='POST'&&r.status()===201);
+  await alice.locator('#live-cat-form [type=submit]').click();await created;
+  assert.equal((await alice.request.get(url+'/cats/'+aliceCat).then(r=>r.json())).name,'Alice Cat','A delayed edit response changed the new-cat form');
   await go(alice,'documents/'+aliceCat);
   await alice.locator('[name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
   await alice.locator('#document-upload [type="submit"]').click();
@@ -105,7 +122,7 @@ const passwords=[password,password];
   assert.deepEqual(errors,[]);
   console.log('PASS: real registration, duplicate accounts, password mismatch, invalid credentials, sessions, profiles, cats/photos, private/shared documents, download, conversations, escaping, proposals, ownership, password change, logout, expiry, recovery errors, PL/EN, auth layout, network errors and temporary account deletion.');
  }catch(error){
-  for(const context of contexts)for(const page of context.pages())console.error('DIAGNOSTIC',page.url(),await page.locator('#main').innerText());
+  for(const context of contexts)for(const page of context.pages()){try{console.error('DIAGNOSTIC',page.url(),await page.locator('#main').count()?await page.locator('#main').innerText({timeout:2000}):'Page did not load');}catch(diagnosticError){console.error('DIAGNOSTIC unavailable',page.url());}}
   throw error;
  }finally{
   fs.writeFileSync(process.env.MATCHCATS_TEST_MANIFEST||path.join(require('os').tmpdir(),'matchcats-live-accounts-'+suffix+'.json'),JSON.stringify({usernames}));

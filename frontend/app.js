@@ -1,3 +1,4 @@
+'use strict';
 if (new URLSearchParams(location.search).get('demo') === '1') {
 'use strict';
 const STORAGE = 'matchcats-panels-v1';
