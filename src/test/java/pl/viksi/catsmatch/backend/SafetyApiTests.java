@@ -106,7 +106,7 @@ class SafetyApiTests {
         mvc.perform(post("/safety/reports").with(user("alice")).with(csrf()).contentType("application/json").content(report("CAT",Long.MAX_VALUE))).andExpect(status().isNotFound());
         for(int i=0;i<20;i++)submit("alice","CAT",b);
         mvc.perform(post("/safety/reports").with(user("alice")).with(csrf()).contentType("application/json").content(report("CAT",b))).andExpect(status().isTooManyRequests());
-        assertEquals(20,db.queryForObject("SELECT count(*) FROM mc_safety_reports",Integer.class));
+        assertEquals(20,db.queryForObject("SELECT count(*) FROM mc_safety_reports WHERE reporter_id=(SELECT id FROM mc_accounts WHERE username='alice')",Integer.class));
     }
     @Test void oldEvidenceIsPurgedAndFreshEvidenceSurvivesAccountDeletion() throws Exception {
         breeder("alice");int bob=breeder("bob");moderator();int b=cat("bob",Cat.Sex.MALE);
@@ -114,8 +114,9 @@ class SafetyApiTests {
         db.update("UPDATE mc_safety_reports SET created_at=CURRENT_TIMESTAMP-INTERVAL '91 days' WHERE id=?",old);
         db.update("DELETE FROM mc_accounts WHERE id=?",bob);
         retention.purge();
-        assertEquals(1,db.queryForObject("SELECT count(*) FROM mc_safety_reports",Integer.class));
-        mvc.perform(get("/moderation/reports").with(user("moderator"))).andExpect(jsonPath("$.items[0].id").value(fresh))
-            .andExpect(jsonPath("$.items[0].reportedAccountId").isEmpty()).andExpect(jsonPath("$.items[0].snapshot").value("bob Cat\nMaine Coon\nProfile description"));
+        assertEquals(0,db.queryForObject("SELECT count(*) FROM mc_safety_reports WHERE id=?",Integer.class,old));
+        assertEquals(1,db.queryForObject("SELECT count(*) FROM mc_safety_reports WHERE id=?",Integer.class,fresh));
+        assertNull(db.queryForObject("SELECT reported_account_id FROM mc_safety_reports WHERE id=?",Integer.class,fresh));
+        assertEquals("bob Cat\nMaine Coon\nProfile description",db.queryForObject("SELECT snapshot FROM mc_safety_reports WHERE id=?",String.class,fresh));
     }
 }
