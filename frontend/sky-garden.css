@@ -157,12 +157,12 @@ dialog { width:550px; border-radius:26px; }
   main { padding:19px 18px 24px; }
   .heading { flex-wrap:wrap; }
   .heading h1 { font-size:28px; }
-  .hero { min-height:465px; }
-  .hero-copy { width:100%; padding:24px; }
+  .hero { min-height:0; }
+  .hero-copy { width:100%; padding:24px 24px 18px; }
   .hero h2 { font-size:34px; max-width:340px; letter-spacing:-1.15px; }
   .hero p { font-size:13px; max-width:300px; margin-bottom:16px; }
   .hero-actions .button { font-size:12px; padding:10px 15px; }
-  .hero-art { inset:200px 0 0; }
+  .hero-art { position:relative; inset:auto; height:240px; }
   .hero-art img { object-position:right 20%; }
   .hero-art::after { background:linear-gradient(#d0e9fc 0%,#d0e9fc60 20%,transparent 45%); }
   .dashboard-search { padding:19px; gap:14px; margin-bottom:25px; }
@@ -180,11 +180,15 @@ dialog { width:550px; border-radius:26px; }
   .filter-footer { flex-wrap:wrap; }
   .filter-footer .button { width:100%; }
   .document-row { flex-wrap:wrap; gap:10px; }
-  .chat-layout { height:700px; }
+  .chat-layout { display:flex; flex-direction:column; height:700px; }
+  .chat-list { display:block; max-height:170px; flex-shrink:0; }
+  .chat-list .conversation-row { width:100%; min-width:0; }
+  .chat-pane { height:auto; flex:1; min-height:0; }
   .chat-compose { flex-wrap:wrap; padding:13px; gap:10px; }
   .chat-compose input { flex-basis:100%; }
   .chat-compose .button { width:100%; }
   footer { flex-direction:column; gap:6px; padding:0 18px 20px; }
+  footer span { display:block; }
   .settings-actions .button { width:100%; white-space:normal; }
   dialog { padding:22px; }
   .form-grid { grid-template-columns:1fr; gap:0; }
