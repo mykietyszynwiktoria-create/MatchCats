@@ -1,10 +1,10 @@
 # MatchCats breeder panels
 
-A bilingual, responsive interface prototype next to the existing Java backend. It is not connected to the server or PostgreSQL yet.
+The default bilingual Sky Garden interface is integrated with the Java/PostgreSQL server. Open the server root URL after starting the app. See ../docs/FRONTEND_INTEGRATION.md. The descriptions below apply to the separate demonstration at /?demo=1.
 
 ## Open the preview
 
-Open index.html in a modern browser. Application assets are local files and do not require downloading libraries to run the preview. You can also serve this directory with a local HTTP server.
+Run the integrated server and open its root URL. Use /?demo=1 for fictional sample profiles and localStorage-only interactions. A static preview must use ?demo=1 because live API requests need the server. Application assets are local files.
 
 ## Main tasks
 
@@ -35,7 +35,7 @@ Checks cover home shortcuts, filters and empty results, cat details, conversatio
 
 All other breeders, conversations, document entries and show achievements are fictional samples. The sample photographs are AI-generated and do not depict verified breeder profiles. Newly added cats have an empty photo placeholder. Data is stored in this browser's localStorage, not in PostgreSQL. If local storage is unavailable, the interface displays a warning. Do not enter confidential information.
 
-There is no authentication, document/photo upload, breeder verification, full profile editing, push notification service, installer or store release. Listed documents have no attached files. Displaying a document does not confirm health, ancestry, breed purity or breeding suitability.
+The separate demonstration has no authentication or document/photo upload and its listed documents have no attached files. The default integrated mode does support accounts, cat/photo editing and file uploads. Independent breeder verification, push notifications, installers and store releases remain unfinished. Displaying a document does not confirm health, ancestry, breed purity or breeding suitability.
 
 ## Windows, Android and iOS
 
@@ -43,6 +43,6 @@ The product owner wants installed applications distributed through the appropria
 
 ## Next work
 
-The backend now includes accounts, cat profiles, conversations, matching and document storage; see the root backend documentation for its validation and boundaries. Next, implement bilingual registration and login screens connected to the session API, including validation, generic invalid-credential errors, network failures and expired sessions. Then replace the remaining demo workflows with server-backed profiles, photos, messages and documents. Password recovery and store packaging remain separate work.
+Real account and breeder workflows are implemented in live.js and api.js. Next release work includes configuring production email/hosting, verifying email addresses, moderation/reporting, notifications, native packaging and device tests.
 
 Commit messages and repository documentation are written in English; changes are saved in small, focused commits.

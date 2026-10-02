@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'frontend/**'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '*.gradle'
       - 'gradle/**'
       - 'gradlew*'
@@ -13,6 +16,9 @@ on:
   pull_request:
     paths:
       - 'src/**'
+      - 'frontend/**'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '*.gradle'
       - 'gradle/**'
       - 'gradlew*'
@@ -54,6 +60,44 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew test build --no-daemon --console=plain
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        working-directory: frontend
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Test demo and integrated interface
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/matchcats_test
+          DB_USER: matchcats_test
+          DB_PASSWORD: ci-only-test-password
+          MATCHCATS_TEST_URL: http://127.0.0.1:8084
+        run: |
+          java -jar build/libs/*-SNAPSHOT.jar --server.port=8084 > app-test.log 2>&1 &
+          APP_PID=$!
+          trap 'kill "$APP_PID"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8084/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8084/health
+          npm --prefix frontend test
+          npm --prefix frontend run test:live
+      - name: Build and smoke-test the container
+        run: |
+          docker build --tag matchcats-ci .
+          docker run --detach --name matchcats-smoke --network host \
+            -e DB_URL="$TEST_DB_URL" -e DB_USER="$TEST_DB_USER" -e DB_PASSWORD="$TEST_DB_PASSWORD" \
+            -e SERVER_ADDRESS=127.0.0.1 matchcats-ci --server.port=8085
+          trap 'docker logs matchcats-smoke; docker rm --force matchcats-smoke' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8085/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8085/health
+          curl --fail --silent http://127.0.0.1:8085/ | grep -q 'MatchCats'
       - name: Publish test reports
         if: always()
         uses: actions/upload-artifact@v4
