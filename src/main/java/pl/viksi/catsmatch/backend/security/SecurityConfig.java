@@ -43,7 +43,7 @@ public class SecurityConfig {
         http.addFilterAfter(new SessionVersionFilter(accounts), org.springframework.security.web.context.SecurityContextHolderFilter.class);
         http.cors(c -> {}).securityContext(c -> c.securityContextRepository(repository))
             .authorizeHttpRequests(a -> a
-                .requestMatchers(HttpMethod.GET, "/health", "/auth/csrf", "/billing/plans", "/", "/index.html",
+                .requestMatchers(HttpMethod.GET, "/health", "/health/ready", "/auth/csrf", "/billing/plans", "/", "/index.html",
                     "/styles.css", "/sky-garden.css", "/live.css", "/i18n.js", "/api.js",
                     "/live.js", "/safety.js", "/error-pages.js", "/legal.js", "/plans.js", "/app.js", "/assets/*.jpg").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/password/request", "/auth/password/reset", "/auth/email/confirm").permitAll()
