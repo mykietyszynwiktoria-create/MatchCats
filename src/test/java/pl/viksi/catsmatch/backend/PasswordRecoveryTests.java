@@ -48,6 +48,27 @@ class PasswordRecoveryTests {
         mvc.perform(post("/auth/login").with(csrf()).contentType("application/json")
             .content("{\"username\":\"recover\",\"password\":\"NewStrongPassword!\"}")).andExpect(status().isOk());
     }
+    @Test void repeatedRequestsFromDifferentAddressesPreserveTheExistingLink() throws Exception {
+        account();String token=issue();
+        mvc.perform(post("/auth/password/request").with(csrf()).with(request -> {
+            request.setRemoteAddr("127.0.0.2");return request;
+        }).contentType("application/json")
+            .content("{\"email\":\"recover@example.test\",\"language\":\"en\"}"))
+            .andExpect(status().isAccepted());
+        verify(mail,times(1)).send(any(SimpleMailMessage.class));
+        assertTrue(tokens.existsById(PasswordRecovery.hash(token)));
+        mvc.perform(post("/auth/password/reset").with(csrf()).contentType("application/json").content(reset(token)))
+            .andExpect(status().isNoContent());
+    }
+    @Test void aNewLinkCanBeIssuedAfterCooldown() throws Exception {
+        account();String original=issue();
+        var entity=tokens.findById(PasswordRecovery.hash(original)).orElseThrow();
+        entity.expiresAt=Instant.now().plusSeconds(830);tokens.saveAndFlush(entity);
+        clearInvocations(mail);String replacement=issue();
+        assertNotEquals(original,replacement);
+        assertFalse(tokens.existsById(PasswordRecovery.hash(original)));
+        assertTrue(tokens.existsById(PasswordRecovery.hash(replacement)));
+    }
     @Test void expiredLinksAreRejected() throws Exception {
         account();String token=issue();var entity=tokens.findById(PasswordRecovery.hash(token)).orElseThrow();entity.expiresAt=Instant.now().minusSeconds(1);tokens.saveAndFlush(entity);
         mvc.perform(post("/auth/password/reset").with(csrf()).contentType("application/json").content(reset(token)))
