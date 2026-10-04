@@ -23,8 +23,7 @@ public class EmailVerification {
         this.service=service;this.accounts=accounts;this.tokens=tokens;this.mail=mail;
     }
     @Transactional public void request(Authentication auth,Request input) {
-        var account=accounts.lockAccounts(List.of(service.current(auth).id)).getFirst();
-        if(account.suspended)throw invalid();
+        var account=service.lockedCurrent(auth);
         if(account.emailVerified)return;
         mail.configured();
         Instant now=Instant.now();

@@ -48,6 +48,9 @@ public class AccountService {
     public Account current(Authentication authentication) {
         return current(authentication, false);
     }
+    Account lockedCurrent(Authentication authentication) {
+        return current(authentication, true);
+    }
     private Account current(Authentication authentication, boolean lock) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "Sign in first");
