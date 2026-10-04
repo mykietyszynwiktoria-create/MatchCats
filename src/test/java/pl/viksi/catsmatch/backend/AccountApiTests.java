@@ -22,6 +22,9 @@ class AccountApiTests {
     @Autowired AccountRepository accounts;
     @Autowired ObjectMapper json;
     @Test void anonymousVisitorsCanLoadAllEntryPageScripts() throws Exception {
+        mvc.perform(get("/health/ready")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("UP"))
+            .andExpect(jsonPath("$.database").value("UP"));
         String html=mvc.perform(get("/index.html")).andExpect(status().isOk())
             .andExpect(header().string("Content-Security-Policy", org.hamcrest.Matchers.containsString("default-src 'self'")))
             .andExpect(header().string("Referrer-Policy", "no-referrer"))
