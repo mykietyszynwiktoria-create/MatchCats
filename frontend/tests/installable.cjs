@@ -10,6 +10,8 @@ assert.match(fs.readFileSync(path.join(root,'app.js'),'utf8'),/service-worker\.j
 assert.equal(manifest.name,'MatchCats');
 assert.equal(manifest.display,'standalone');
 assert.match(worker,/self\.addEventListener\('install'/);
-assert.match(worker,/self\.addEventListener\('fetch'/);\nassert.match(worker,/isStaticAsset/);\nassert.match(worker,/!isStaticAsset\(url\.pathname\)/);
+assert.match(worker,/self\.addEventListener\('fetch'/);
+assert.match(worker,/isStaticAsset/);
+assert.match(worker,/!isStaticAsset\(url\.pathname\)/);
 assert.ok(!worker.includes('/notifications') && !worker.includes('/users/me'),'Private API endpoints must not be cached');
 console.log('PASS: install manifest and safe static-shell caching are wired.');
