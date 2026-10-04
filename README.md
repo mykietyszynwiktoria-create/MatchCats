@@ -103,3 +103,6 @@ Installable app metadata and the static shell service worker are documented in [
 
 
 For Windows development, [tools/Start-MatchCats.ps1](tools/Start-MatchCats.ps1) checks Docker and Java, starts the local PostgreSQL container, and launches either `bootRun` or the test/build task. It does not install software or delete data.
+
+
+Native store packaging is planned in [Mobile wrapper plan](docs/MOBILE_WRAPPER_PLAN.md); no paid accounts or store submissions are created automatically.
