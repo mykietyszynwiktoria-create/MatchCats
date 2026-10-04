@@ -79,6 +79,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const [route='dashboard',id]=location.hash.slice(1).split('/');shell(route);
     const flashKey=location.hash.slice(1);
     if(notice){flash=notice;flashRoute=flashKey;}else if(flashRoute!==flashKey)flash='';
+    if(route==='privacy'||route==='terms'){document.body.classList.add('signed-out');main.innerHTML=MatchCatsLegal.page(route,language);activateForms();return;}
     if(route==='forgot' || route==='reset') {document.body.classList.add('signed-out');main.innerHTML=recoveryForm(route,id);activateForms();return;}
     if(route==='verify') {main.innerHTML=verificationForm(id);activateForms();return;}
     if(route==='404'){main.innerHTML=errorPage({status:404});return;}
