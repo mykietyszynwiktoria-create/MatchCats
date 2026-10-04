@@ -46,10 +46,14 @@ public class AccountService {
                 email, input.firstName().strip(), input.surname().strip())));
     }
     public Account current(Authentication authentication) {
+        return current(authentication, false);
+    }
+    private Account current(Authentication authentication, boolean lock) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "Sign in first");
         }
-        Account account=accounts.findByUsername(authentication.getName()).orElseThrow(() -> ApiException.missing("Account"));
+        Account account=(lock ? accounts.lockByUsername(authentication.getName()) : accounts.findByUsername(authentication.getName()))
+            .orElseThrow(() -> ApiException.missing("Account"));
         if(account.suspended)throw new ApiException(HttpStatus.FORBIDDEN,"ACCOUNT_SUSPENDED","Account access is suspended");
         return account;
     }
@@ -57,7 +61,7 @@ public class AccountService {
     public boolean currentOwnerSuspended(Integer id){return accounts.findById(id).map(a->a.suspended).orElse(true);}
     @Transactional
     public UserView update(Authentication authentication, ProfileInput input) {
-        Account account = accounts.lockAccounts(java.util.List.of(current(authentication).id)).getFirst();
+        Account account = current(authentication, true);
         String email=input.email().strip().toLowerCase(Locale.ROOT);
         if(!account.email.equals(email)){
             verify(account,input.currentPassword());resets.deleteAllByAccountId(account.id);resets.flush();
@@ -75,7 +79,7 @@ public class AccountService {
             throw new ApiException(HttpStatus.BAD_REQUEST,"INVALID_CURRENT_PASSWORD","Current password is incorrect");
     }
     @Transactional public void changePassword(Authentication auth,PasswordChange input) {
-        Account account=accounts.lockAccounts(java.util.List.of(current(auth).id)).getFirst();verify(account,input.currentPassword());
+        Account account=current(auth, true);verify(account,input.currentPassword());
         replacePassword(account,input.newPassword());
     }
     public void replacePassword(Account account,String password) {
@@ -85,6 +89,6 @@ public class AccountService {
         accounts.saveAndFlush(account);
     }
     @Transactional public void delete(Authentication auth,DeleteAccount input) {
-        Account account=accounts.lockAccounts(java.util.List.of(current(auth).id)).getFirst();verify(account,input.currentPassword());accounts.delete(account);accounts.flush();
+        Account account=current(auth, true);verify(account,input.currentPassword());accounts.delete(account);accounts.flush();
     }
 }
