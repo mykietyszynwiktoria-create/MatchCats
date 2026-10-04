@@ -53,9 +53,16 @@ const passwords=[password,password];
   }
   const alice=contexts[0].pages()[0],bob=contexts[1].pages()[0];
   const aliceCat=alice.url().split('/').at(-1),bobCat=bob.url().split('/').at(-1);
+  await alice.route('**/cats/'+aliceCat+'/photo',async route=>{
+   await new Promise(resolve=>setTimeout(resolve,500));await route.continue();
+  });
   await alice.locator('#photo-upload [name="file"]').setInputFiles(path.join(__dirname,'../assets/sky-hero.jpg'));
   await alice.locator('#photo-upload [type="submit"]').click();await alice.locator('.live-cat-photo').waitFor();
+  await alice.waitForFunction(()=>{
+   const img=document.querySelector('.live-cat-photo');return img?.complete&&img.naturalWidth>0;
+  });
   assert.ok(await alice.locator('.live-cat-photo').evaluate(img=>img.complete&&img.naturalWidth>0));
+  await alice.unroute('**/cats/'+aliceCat+'/photo');
   let release;const blocked=new Promise(resolve=>{release=resolve;});
   await alice.route('**/cats/'+aliceCat,async route=>{await blocked;await route.continue();});
   const loading=alice.waitForRequest('**/cats/'+aliceCat);await alice.goto(url+'/#edit-cat/'+aliceCat);await loading;
