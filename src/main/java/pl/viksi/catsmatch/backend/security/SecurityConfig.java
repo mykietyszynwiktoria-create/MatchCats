@@ -45,7 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> a
                 .requestMatchers(HttpMethod.GET, "/health", "/auth/csrf", "/", "/index.html",
                     "/styles.css", "/sky-garden.css", "/live.css", "/i18n.js", "/api.js",
-                    "/live.js", "/safety.js", "/error-pages.js", "/legal.js", "/app.js", "/assets/*.jpg").permitAll()
+                    "/live.js", "/safety.js", "/error-pages.js", "/legal.js", "/plans.js", "/app.js", "/assets/*.jpg").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/password/request", "/auth/password/reset", "/auth/email/confirm").permitAll()
                 .requestMatchers("/error").permitAll().anyRequest().authenticated())
             .requestCache(c -> c.disable()).formLogin(c -> c.disable()).httpBasic(c -> c.disable())
