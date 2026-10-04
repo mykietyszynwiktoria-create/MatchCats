@@ -10,6 +10,7 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:-http://127.0.0.1:8765,http://localhost:8765}
+      FORWARD_HEADERS_STRATEGY: ${FORWARD_HEADERS_STRATEGY:-framework}
       DB_URL: jdbc:postgresql://postgres:5432/matchcats
       DB_USER: matchcats
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
