@@ -60,3 +60,5 @@ window.addEventListener('hashchange',()=>{render();main.focus({preventScroll:tru
 render();
 
 }
+
+if("serviceWorker" in navigator && location.protocol!=="file:"){navigator.serviceWorker.register("service-worker.js").catch(function(){})}

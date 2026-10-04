@@ -36,6 +36,6 @@ tasks.named('test') {
 tasks.named('processResources') {
 	from('frontend') {
 		into 'static'
-		include '*.html', '*.css', '*.js', 'assets/*.jpg'
+		include '*.html', '*.css', '*.js', '*.webmanifest', 'assets/*.jpg'
 	}
 }
