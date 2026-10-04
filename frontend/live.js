@@ -77,7 +77,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   async function render(notice='') {
     const ownRevision=++revision;
     const [route='dashboard',id]=location.hash.slice(1).split('/');shell(route);
-    if(notice){flash=notice;flashRoute=route;}else if(flashRoute!==route)flash='';
+    const flashKey=location.hash.slice(1);
+    if(notice){flash=notice;flashRoute=flashKey;}else if(flashRoute!==flashKey)flash='';
     if(route==='forgot' || route==='reset') {document.body.classList.add('signed-out');main.innerHTML=recoveryForm(route,id);activateForms();return;}
     if(route==='verify') {main.innerHTML=verificationForm(id);activateForms();return;}
     if(route==='404'){main.innerHTML=errorPage({status:404});return;}
@@ -253,8 +254,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
         await api('/moderation/reports/'+form.dataset.reportId+'/decision',{method:'POST',body:{status,action,note:data.note}});await render(t('Decyzja zapisana.','Decision saved.'));
       }else if(form.classList.contains('moderation-reinstate')){await api('/moderation/accounts/'+form.dataset.accountId+'/reinstate',{method:'POST',body:{note:data.note}});await render(t('Dostęp do konta przywrócony.','Account access reinstated.'));}
       else if(form.id==='register-form'){await api('/users',{method:'POST',body:data});location.hash='login';await render(t('Konto zostało utworzone. Możesz się zalogować.','Your account has been created. You can sign in.'));}
-      else if(form.id==='request-email-form'){await api('/auth/email/request',{method:'POST',body:{language}});await render(t('Link wys?any. Sprawd? skrzynk? i folder spam.','Link sent. Check your inbox and spam folder.'));}
-      else if(form.id==='verify-email-form'){await api('/auth/email/confirm',{method:'POST',body:{token:form.dataset.token}});if(user)user=await api('/users/me');await render(t('Adres konta, dla kt?rego wys?ano link, zosta? potwierdzony.','The account email this link was sent for has been verified.'));}
+      else if(form.id==='request-email-form'){await api('/auth/email/request',{method:'POST',body:{language}});await render(t('Link wysłany. Sprawdź skrzynkę i folder spam.','Link sent. Check your inbox and spam folder.'));}
+      else if(form.id==='verify-email-form'){await api('/auth/email/confirm',{method:'POST',body:{token:form.dataset.token}});if(user)user=await api('/users/me');await render(t('Adres konta, dla którego wysłano link, został potwierdzony.','The account email this link was sent for has been verified.'));}
       else if(form.id==='forgot-password-form'){await api('/auth/password/request',{method:'POST',body:{email:data.email,language}});await render(t('Jeśli konto istnieje, wysłaliśmy link. Sprawdź również folder spam.','If an account exists, a link has been sent. Check your spam folder too.'));}
       else if(form.id==='reset-password-form'){await api('/auth/password/reset',{method:'POST',body:{token:form.dataset.token,password:data.password}});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render(t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'));}
       else if(form.id==='login-form'){user=await api('/auth/login',{method:'POST',body:data});MatchCatsAPI.resetCSRF();await loadBreeder();await loadSafety();location.hash=breeder?'dashboard':'settings';await render();}
