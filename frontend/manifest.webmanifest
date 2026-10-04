@@ -1,0 +1,11 @@
+{
+  "name": "MatchCats",
+  "short_name": "MatchCats",
+  "description": "A private workspace for breeders, cat profiles, documents and conversations.",
+  "lang": "en",
+  "start_url": "./?source=installed",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eaf4ff",
+  "theme_color": "#155dcc"
+}
