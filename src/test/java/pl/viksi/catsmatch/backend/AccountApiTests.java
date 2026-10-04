@@ -21,6 +21,12 @@ class AccountApiTests {
     @Autowired MockMvc mvc;
     @Autowired AccountRepository accounts;
     @Autowired ObjectMapper json;
+    @Test void emailVerificationReportsUnavailableDelivery() throws Exception {
+        mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("mailoff")))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.emailVerified").value(false));
+        mvc.perform(post("/auth/email/request").with(user("mailoff")).with(csrf()).contentType("application/json").content("{\"language\":\"pl\"}"))
+            .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.code").value("EMAIL_UNAVAILABLE"));
+    }
     @Test void emailChangesRequireCurrentPasswordAndNeverExposeIt() throws Exception {
         mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("emailtest"))).andExpect(status().isCreated());
         mvc.perform(put("/users/me").with(user("emailtest")).with(csrf()).contentType("application/json")

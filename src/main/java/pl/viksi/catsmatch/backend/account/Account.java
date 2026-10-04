@@ -14,6 +14,8 @@ public class Account {
     public String passwordHash;
     @Column(nullable = false, unique = true, length = 254)
     public String email;
+    @JsonIgnore @Column(name="email_verified",nullable=false)
+    public boolean emailVerified;
     @Column(name = "first_name", nullable = false, length = 80)
     public String firstName;
     @Column(nullable = false, length = 80)

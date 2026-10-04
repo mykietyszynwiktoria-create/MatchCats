@@ -1,0 +1,8 @@
+ALTER TABLE mc_accounts ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE TABLE mc_email_verifications (
+    token_hash VARCHAR(64) PRIMARY KEY,
+    account_id INTEGER NOT NULL UNIQUE REFERENCES mc_accounts(id) ON DELETE CASCADE,
+    email VARCHAR(254) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    issued_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

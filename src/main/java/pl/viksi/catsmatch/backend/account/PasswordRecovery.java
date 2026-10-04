@@ -35,12 +35,17 @@ public class PasswordRecovery {
         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}
         catch(NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}
     }
-    private void configured() {
+    void configured() {
         boolean safe=false;
         try{var uri=URI.create(base);safe=uri.getHost()!=null && uri.getUserInfo()==null && uri.getFragment()==null && uri.getQuery()==null
             && ("https".equals(uri.getScheme()) || ("http".equals(uri.getScheme()) && Set.of("localhost","127.0.0.1").contains(uri.getHost())));}catch(IllegalArgumentException ignored){}
         if(!enabled || from.isBlank() || !safe || sender.getIfAvailable()==null)
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,"EMAIL_UNAVAILABLE","Password recovery email is not configured");
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,"EMAIL_UNAVAILABLE","Email delivery is not configured");
+    }
+    String link(String fragment){return base+fragment;}
+    void send(String address,String subject,String text) {
+        var mail=new SimpleMailMessage();mail.setFrom(from);mail.setTo(address);mail.setSubject(subject);mail.setText(text);
+        try{sender.getObject().send(mail);}catch(MailException ex){throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,"EMAIL_UNAVAILABLE","Email delivery is temporarily unavailable");}
     }
     @Transactional public void request(Request input) {
         configured();
@@ -50,10 +55,8 @@ public class PasswordRecovery {
         tokens.deleteAllByAccountId(account.id);tokens.flush();
         byte[] bytes=new byte[32];random.nextBytes(bytes);String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         tokens.saveAndFlush(new PasswordResetToken(hash(token),account.id,Instant.now().plusSeconds(900)));
-        var mail=new SimpleMailMessage();mail.setFrom(from);mail.setTo(account.email);mail.setSubject("MatchCats - password reset");
         String link=base+"/#reset/"+token;
-        mail.setText(input.language().equals("pl")?"Aby ustawić nowe hasło MatchCats, otwórz link (ważny 15 minut):\n"+link+"\nJeśli nie proszono o zmianę, zignoruj tę wiadomość.":"To reset your MatchCats password, open this link (valid for 15 minutes):\n"+link+"\nIf you did not request this, ignore this message.");
-        try{sender.getObject().send(mail);}catch(MailException ex){throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,"EMAIL_UNAVAILABLE","Email delivery is temporarily unavailable");}
+        send(account.email,"MatchCats - password reset",input.language().equals("pl")?"Aby ustawić nowe hasło MatchCats, otwórz link (ważny 15 minut):\n"+link+"\nJeśli nie proszono o zmianę, zignoruj tę wiadomość.":"To reset your MatchCats password, open this link (valid for 15 minutes):\n"+link+"\nIf you did not request this, ignore this message.");
     }
     @Transactional public void reset(Reset input) {
         String hash=hash(input.token());

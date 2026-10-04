@@ -19,7 +19,7 @@ public class AccountService {
         @NotBlank @Email @Size(max=254) String email,
         @JsonAlias("firstname") @NotBlank @Size(max=80) String firstName,
         @NotBlank @Size(max=80) String surname) {}
-    public record UserView(Integer id, String username, String email, String firstName, String surname) {}
+    public record UserView(Integer id, String username, String email, String firstName, String surname, boolean emailVerified) {}
     public record PasswordChange(@NotBlank String currentPassword, @NotBlank @Size(min=8,max=72) String newPassword) {}
     public record DeleteAccount(@NotBlank String currentPassword) {}
     public record ProfileInput(@NotBlank @Email @Size(max=254) String email,
@@ -28,8 +28,9 @@ public class AccountService {
     private final AccountRepository accounts;
     private final PasswordEncoder passwords;
     private final PasswordResetRepository resets;
-    public AccountService(AccountRepository accounts, PasswordEncoder passwords,PasswordResetRepository resets) {
-        this.accounts = accounts; this.passwords = passwords;this.resets=resets;
+    private final EmailVerificationRepository verifications;
+    public AccountService(AccountRepository accounts, PasswordEncoder passwords,PasswordResetRepository resets,EmailVerificationRepository verifications) {
+        this.accounts = accounts; this.passwords = passwords;this.resets=resets;this.verifications=verifications;
     }
     @Transactional
     public UserView register(Registration input) {
@@ -58,13 +59,16 @@ public class AccountService {
     public UserView update(Authentication authentication, ProfileInput input) {
         Account account = accounts.lockAccounts(java.util.List.of(current(authentication).id)).getFirst();
         String email=input.email().strip().toLowerCase(Locale.ROOT);
-        if(!account.email.equals(email)){verify(account,input.currentPassword());resets.deleteAllByAccountId(account.id);resets.flush();}
+        if(!account.email.equals(email)){
+            verify(account,input.currentPassword());resets.deleteAllByAccountId(account.id);resets.flush();
+            account.emailVerified=false;verifications.deleteAllByAccountId(account.id);verifications.flush();
+        }
         account.email = email;
         account.firstName = input.firstName().strip(); account.surname = input.surname().strip();
         return view(accounts.saveAndFlush(account));
     }
     public UserView view(Account account) {
-        return new UserView(account.id, account.username, account.email, account.firstName, account.surname);
+        return new UserView(account.id, account.username, account.email, account.firstName, account.surname, account.emailVerified);
     }
     private void verify(Account account,String password) {
         if(password==null || password.isBlank() || password.getBytes(StandardCharsets.UTF_8).length>72 || !passwords.matches(password,account.passwordHash))
