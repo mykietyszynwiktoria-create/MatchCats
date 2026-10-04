@@ -1,0 +1,14 @@
+const assert=require('assert/strict');
+const fs=require('fs');
+const path=require('path');
+const root=path.resolve(__dirname,'..');
+const live=fs.readFileSync(path.join(root,'live.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'live.css'),'utf8');
+assert.match(live,/\['notifications',t\('Powiadomienia','Notifications'\)\]/);
+assert.match(live,/if\(route==='notifications'\) return notifications\(\)/);
+assert.match(live,/api\('\/notifications\?limit=50'\)/);
+assert.match(live,/data-notification-read/);
+assert.match(live,/notificationTitle=item\.kind==='MESSAGE'/);
+assert.match(live,/t\('Nowa wiadomość','New message'\)/);
+assert.match(css,/\.notification-card/);
+console.log('PASS: bilingual notification route, read action and styling are wired.');
