@@ -220,6 +220,9 @@ class DocumentApiTests {
         String requested = mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf())).andReturn().getResponse().getContentAsString();
         String rejected = json.writeValueAsString(java.util.Map.of("status","REJECTED","requestedAt",json.readTree(requested).get("verificationRequestedAt").asText(),"note","The scan is not readable enough."));
         mvc.perform(post("/moderation/documents/"+id+"/decision").with(user("moderator")).with(csrf()).contentType("application/json").content(rejected)).andExpect(status().isOk());
+        String paddedShortNote = json.writeValueAsString(java.util.Map.of("note", "     short     "));
+        mvc.perform(post("/documents/"+id+"/verification-appeal").with(user("alice")).with(csrf())
+            .contentType("application/json").content(paddedShortNote)).andExpect(status().isBadRequest());
         mvc.perform(post("/documents/"+id+"/verification-appeal").with(user("alice")).with(csrf()).contentType("application/json").content("{\"note\":\"Here is the issuing registry reference.\"}"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("REVIEW_REQUESTED"))
             .andExpect(jsonPath("$.verificationAppealNote").value("Here is the issuing registry reference."));

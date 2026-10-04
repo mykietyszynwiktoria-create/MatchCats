@@ -24,7 +24,11 @@ public class DocumentService {
     public record Sharing(@NotNull CatDocument.Visibility visibility) {}
     public record Decision(@NotNull CatDocument.VerificationStatus status,
         @NotNull Instant requestedAt, @NotBlank @Size(max=1000) String note) {}
-    public record Appeal(@NotBlank @Size(min=10, max=1000) String note) {}
+    public record Appeal(@NotBlank @Size(min=10, max=1000) String note) {
+        public Appeal {
+            if (note != null) note = note.strip();
+        }
+    }
     private final DocumentRepository documents;
     private final CatService cats;
     private final CatRepository catRepository;
