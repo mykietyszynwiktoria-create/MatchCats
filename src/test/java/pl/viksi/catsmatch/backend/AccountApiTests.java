@@ -23,6 +23,7 @@ class AccountApiTests {
     @Autowired ObjectMapper json;
     @Test void anonymousVisitorsCanLoadAllEntryPageScripts() throws Exception {
         String html=mvc.perform(get("/index.html")).andExpect(status().isOk())
+            .andExpect(header().string("Content-Security-Policy", org.hamcrest.Matchers.containsString("default-src 'self'")))
             .andReturn().getResponse().getContentAsString();
         var scripts=java.util.regex.Pattern.compile("<script\\s+src=\"([^\"]+)\"").matcher(html);
         int count=0;
@@ -105,3 +106,4 @@ class AccountApiTests {
         mvc.perform(get("/auth/csrf")).andExpect(status().isOk()).andExpect(jsonPath("$.token").isString());
     }
 }
+
