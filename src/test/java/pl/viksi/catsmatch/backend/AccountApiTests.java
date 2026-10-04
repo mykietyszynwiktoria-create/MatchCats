@@ -24,6 +24,8 @@ class AccountApiTests {
     @Test void anonymousVisitorsCanLoadAllEntryPageScripts() throws Exception {
         String html=mvc.perform(get("/index.html")).andExpect(status().isOk())
             .andExpect(header().string("Content-Security-Policy", org.hamcrest.Matchers.containsString("default-src 'self'")))
+            .andExpect(header().string("Referrer-Policy", "no-referrer"))
+            .andExpect(header().string("Permissions-Policy", org.hamcrest.Matchers.containsString("camera=()")))
             .andReturn().getResponse().getContentAsString();
         var scripts=java.util.regex.Pattern.compile("<script\\s+src=\"([^\"]+)\"").matcher(html);
         int count=0;
