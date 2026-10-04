@@ -44,7 +44,15 @@ async function run({url,moderator,password}){
   }
   const review=admin.locator('.document-review-decision');await review.locator('[name=note]').fill('Please upload a readable scan.');await review.locator('[type=submit]').click();await review.waitFor({state:'hidden'});
   await go(bob,'cat/'+cat);assert.match(await bob.locator('.live-file-row').innerText(),/Please upload a readable scan/);
-  requested=bob.waitForResponse(r=>r.url().endsWith('/documents/'+document+'/verification-request')&&r.request().method()==='POST');await bob.locator('[data-request-verification="'+document+'"]').click();assert.equal((await requested).status(),200);await bob.locator('[data-request-verification="'+document+'"]:disabled').waitFor();
+  const appealNote='The issuing registry confirms this document reference.';
+  bob.removeAllListeners('dialog');bob.once('dialog',d=>d.accept(appealNote));
+  const [appealed]=await Promise.all([
+   bob.waitForResponse(r=>r.url().endsWith('/documents/'+document+'/verification-appeal')&&r.request().method()==='POST'),
+   bob.locator('[data-appeal-document="'+document+'"]').click()
+  ]);
+  bob.on('dialog',d=>d.accept());assert.equal(appealed.status(),200);
+  await bob.locator('[data-request-verification="'+document+'"]:disabled').waitFor();
+  assert.match(await bob.locator('.live-file-row').innerText(),new RegExp(appealNote));
   await go(admin,'moderation/documents');await review.waitFor();await review.locator('[name=status]').selectOption('VERIFIED');await review.locator('[name=note]').fill('Checked with the issuing registry in this test.');await review.locator('[type=submit]').click();await review.waitFor({state:'hidden'});
   await go(bob,'cat/'+cat);assert.match(await bob.locator('.live-file-row').innerText(),/Checked with the issuing registry/);assert.equal(await bob.locator('[data-request-verification="'+document+'"]').isDisabled(),true);
   console.log('PASS: document owner request, moderator rejection, owner explanation, resubmission, approval, PL/EN and responsive review screens.');
