@@ -16,13 +16,16 @@ public class BillingController {
         new Plan("FREE", "Free", "0", true, List.of("Breeder and cat profiles", "Candidate search", "Conversations and pair proposals")),
         new Plan("PREMIUM", "Premium", "COMING_SOON", false, List.of("More profiles and documents", "Extended search filters", "Cattery highlighting"))
     );
+    private final SubscriptionService subscriptions;
+
+    public BillingController(SubscriptionService subscriptions) { this.subscriptions = subscriptions; }
 
     @GetMapping("/billing/plans")
     List<Plan> plans() { return PLANS; }
 
     @GetMapping("/billing/me")
     AccountPlan current(Authentication authentication) {
-        return new AccountPlan("FREE", true, "ACTIVE");
+        return subscriptions.current(authentication);
     }
 
     @PostMapping("/billing/checkout")
