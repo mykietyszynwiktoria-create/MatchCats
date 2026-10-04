@@ -81,7 +81,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const flashKey=location.hash.slice(1);
     if(notice){flash=notice;flashRoute=flashKey;}else if(flashRoute!==flashKey)flash='';
     if(route==='privacy'||route==='terms'){document.body.classList.add('signed-out');main.innerHTML=MatchCatsLegal.page(route,language,!!user);activateForms();return;}
-    if(route==='plans'){document.body.classList.toggle('signed-out',!user);main.innerHTML=MatchCatsPlans.page(language);activateForms();if(user){try{const plan=await api('/billing/me');const note=main.querySelector('.plans-page .notice');if(note)note.textContent=t('Twój plan: '+plan.planId,'Your plan: '+plan.planId);}catch{}}return;}
+    if(route==='plans'){document.body.classList.toggle('signed-out',!user);main.innerHTML=MatchCatsPlans.page(language,undefined,!!user);activateForms();if(user){try{const plan=await api('/billing/me');const note=main.querySelector('.plans-page .notice');if(note)note.textContent=t('Twój plan: '+plan.planId,'Your plan: '+plan.planId);}catch{}}return;}
     if(route==='forgot' || route==='reset') {document.body.classList.add('signed-out');main.innerHTML=recoveryForm(route,id);activateForms();return;}
     if(route==='verify') {main.innerHTML=verificationForm(id);activateForms();return;}
     if(route==='404'){main.innerHTML=errorPage({status:404});return;}

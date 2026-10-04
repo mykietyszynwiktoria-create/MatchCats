@@ -26,20 +26,22 @@ const fs=require('fs'),path=require('path'),http=require('http');
     }else if(url.pathname==='/owners/me')body={id:1,kennel:'Test cattery',city:'Test',country:'PL',bio:''};
     else if(url.pathname==='/safety/capabilities')body={moderator:false,moderationConfigured:false};
     else if(url.pathname==='/chats/unread')body={unreadMessages:0,unreadConversations:0};
+    else if(url.pathname==='/billing/me')body={planId:'FREE',active:true,status:'ACTIVE'};
     else return route.continue();
     await route.fulfill({json:body});
    });
-   for(const language of ['pl','en'])for(const kind of ['privacy','terms']){
+   for(const language of ['pl','en'])for(const kind of ['privacy','terms','plans']){
+    const section=kind==='plans'?'.plans-page':'.legal-page';
     await page.goto('http://127.0.0.1:'+server.address().port+'/#'+kind);
-    await page.locator('.legal-page h1').waitFor();
+    await page.locator(section+' h1').waitFor();
     await page.locator('[data-language="'+language+'"]').click();
-    const heading=kind==='privacy'?(language==='pl'?'Polityka prywatności':'Privacy policy'):(language==='pl'?'Regulamin MatchCats':'MatchCats terms of use');
-    await page.waitForFunction(expected=>document.querySelector('.legal-page h1')?.textContent===expected,heading);
+    const heading=kind==='privacy'?(language==='pl'?'Polityka prywatności':'Privacy policy'):kind==='terms'?(language==='pl'?'Regulamin MatchCats':'MatchCats terms of use'):(language==='pl'?'Plany MatchCats':'MatchCats plans');
+    await page.waitForFunction(({section,heading})=>document.querySelector(section+' h1')?.textContent===heading,{section,heading});
     for(const width of [320,390,768,1440]){
      await page.setViewportSize({width,height:1000});
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Legal page overflow '+kind+' '+language+' '+width);
     }
-    const back=page.locator('.legal-page .live-tools a');
+    const back=page.locator(section+' .live-tools a');
     assert.equal(await back.getAttribute('href'),signedIn?'#settings':'#login','Return link must preserve the current session');
     await back.click();
     await page.locator(signedIn?'#account-form':'#login-form').waitFor();
@@ -47,6 +49,6 @@ const fs=require('fs'),path=require('path'),http=require('http');
    }
    assert.deepEqual(errors,[]);await context.close();
   }
-  console.log('PASS: privacy and terms pages, PL/EN, mobile layouts and return navigation with and without a session.');
+  console.log('PASS: privacy, terms and plans pages, PL/EN, mobile layouts and return navigation with and without a session.');
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});
