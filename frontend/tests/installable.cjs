@@ -1,0 +1,15 @@
+const assert=require('assert/strict');
+const fs=require('fs');
+const path=require('path');
+const root=path.resolve(__dirname,'..');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
+const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
+assert.match(html,/rel="manifest" href="manifest\.webmanifest"/);
+assert.match(html,/service-worker\.js/);
+assert.equal(manifest.name,'MatchCats');
+assert.equal(manifest.display,'standalone');
+assert.match(worker,/self\.addEventListener\('install'/);
+assert.match(worker,/self\.addEventListener\('fetch'/);
+assert.ok(!worker.includes('/notifications') && !worker.includes('/users/me'),'Private API endpoints must not be cached');
+console.log('PASS: install manifest and safe static-shell caching are wired.');
