@@ -90,3 +90,5 @@ See [Frontend integration](docs/FRONTEND_INTEGRATION.md) for browser scenarios, 
 Pair proposals now require an explicit recipient response. See [Pairing consent](docs/PAIRING_CONSENT.md) for migration, permissions and testing.
 
 Conversation unread counts persist per account. Bilingual 404/403/network/server views use native cat illustrations; see [Unread messages and errors](docs/UNREAD_AND_ERRORS.md).
+
+Inbox verification adds a private account status and single-use 24-hour links. See [Email verification](docs/EMAIL_VERIFICATION.md) for API permissions, SMTP requirements and testing limits.
