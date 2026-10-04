@@ -156,7 +156,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   const docKind=kind=>({PEDIGREE:t('Rodowód','Pedigree'),GENETIC_TEST:t('Badanie genetyczne','Genetic test'),AWARD:t('Osiągnięcie','Award'),HEALTH:t('Zdrowie','Health'),OTHER:t('Inny','Other')})[kind];
   function documentsHTML(docs,own) {
-    return docs.map(d=>`<div class="live-file-row"><strong>${esc(d.filename)}<small>${docKind(d.kind)} · ${d.visibility==='PRIVATE'?t('Prywatny','Private'):t('Widoczny dla hodowców','Visible to breeders')}</small></strong><button type="button" class="button secondary" data-download="${d.id}">${t('Pobierz','Download')}</button>${own?`<button type="button" class="button secondary" data-share="${d.id}" data-visibility="${d.visibility==='PRIVATE'?'BREEDERS':'PRIVATE'}">${d.visibility==='PRIVATE'?t('Udostępnij hodowcom','Share with breeders'):t('Ustaw prywatny','Make private')}</button><button type="button" class="button secondary danger" data-delete-document="${d.id}">${t('Usuń','Delete')}</button>`:''}</div>`).join('')||`<p>${t('Brak widocznych dokumentów.','No visible documents.')}</p>`;
+    const verification=d=>({OWNER_UPLOADED:t('Przesłany przez właściciela','Uploaded by owner'),REVIEW_REQUESTED:t('Oczekuje na sprawdzenie','Waiting for review'),VERIFIED:t('Zweryfikowany przez moderatora','Verified by moderator'),REJECTED:t('Odrzucony przez moderatora','Rejected by moderator')})[d.verification]||t('Nieznany status','Unknown status');
+    return docs.map(d=>`<div class="live-file-row"><strong>${esc(d.filename)}<small>${docKind(d.kind)} · ${d.visibility==='PRIVATE'?t('Prywatny','Private'):t('Widoczny dla hodowców','Visible to breeders')} · ${verification(d)}</small></strong><button type="button" class="button secondary" data-download="${d.id}">${t('Pobierz','Download')}</button>${own?`<button type="button" class="button secondary" data-request-verification="${d.id}" ${d.verification==='REVIEW_REQUESTED'||d.verification==='VERIFIED'?'disabled':''}>${d.verification==='REJECTED'?t('Wyślij ponownie do sprawdzenia','Request review again'):t('Poproś o sprawdzenie','Request review')}</button><button type="button" class="button secondary" data-share="${d.id}" data-visibility="${d.visibility==='PRIVATE'?'BREEDERS':'PRIVATE'}">${d.visibility==='PRIVATE'?t('Udostępnij hodowcom','Share with breeders'):t('Ustaw prywatny','Make private')}</button><button type="button" class="button secondary danger" data-delete-document="${d.id}">${t('Usuń','Delete')}</button>`:''}</div>`).join('')||`<p>${t('Brak widocznych dokumentów.','No visible documents.')}</p>`;
   }
   async function documentPage(id) {
     if(!id){const cats=await api('/owners/me/cats?page='+listPage+'&size=20');return title(t('Dokumenty kotów','Cat documents'))+`<div class="cat-grid">${cats.items.map(c=>`<section class="panel"><h2>${esc(c.name)}</h2>${button(t('Zarządzaj plikami','Manage files'),'documents/'+c.id)}</section>`).join('')||t('Najpierw dodaj kota.','Add a cat first.')}</div>`+pager(cats,'cats');}
@@ -219,6 +220,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       if(el.dataset.share){await api('/documents/'+el.dataset.share+'/visibility',{method:'PUT',body:{visibility:el.dataset.visibility}});await render();}
       if(el.dataset.deletePhoto && confirm(t('Usunąć zdjęcie kota?','Remove the cat photo?'))){await api('/cats/'+el.dataset.deletePhoto+'/photo',{method:'DELETE'});await render();}
       if(el.dataset.deleteDocument && confirm(t('Usunąć ten dokument?','Delete this document?'))){await api('/documents/'+el.dataset.deleteDocument,{method:'DELETE'});await render();}
+      if(el.dataset.requestVerification){el.disabled=true;await api('/documents/'+el.dataset.requestVerification+'/verification-request',{method:'POST'});await render(t('Prośba o sprawdzenie dokumentu została zapisana.','The document review request was saved.'));}
     }catch(error){showError(error);el.disabled=false;}
   });
   document.addEventListener('change',e=>{if(e.target.hasAttribute('data-show-password')) main.querySelectorAll('input[name="password"],input[name="confirm"]').forEach(input=>input.type=e.target.checked?'text':'password');});
@@ -254,8 +256,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
         await api('/moderation/reports/'+form.dataset.reportId+'/decision',{method:'POST',body:{status,action,note:data.note}});await render(t('Decyzja zapisana.','Decision saved.'));
       }else if(form.classList.contains('moderation-reinstate')){await api('/moderation/accounts/'+form.dataset.accountId+'/reinstate',{method:'POST',body:{note:data.note}});await render(t('Dostęp do konta przywrócony.','Account access reinstated.'));}
       else if(form.id==='register-form'){await api('/users',{method:'POST',body:data});location.hash='login';await render(t('Konto zostało utworzone. Możesz się zalogować.','Your account has been created. You can sign in.'));}
-      else if(form.id==='request-email-form'){await api('/auth/email/request',{method:'POST',body:{language}});await render(t('Link wysłany. Sprawdź skrzynkę i folder spam.','Link sent. Check your inbox and spam folder.'));}
-      else if(form.id==='verify-email-form'){await api('/auth/email/confirm',{method:'POST',body:{token:form.dataset.token}});if(user)user=await api('/users/me');await render(t('Adres konta, dla którego wysłano link, został potwierdzony.','The account email this link was sent for has been verified.'));}
+      else if(form.id==='request-email-form'){await api('/auth/email/request',{method:'POST',body:{language}});await render(t('Link wys?any. Sprawd? skrzynk? i folder spam.','Link sent. Check your inbox and spam folder.'));}
+      else if(form.id==='verify-email-form'){await api('/auth/email/confirm',{method:'POST',body:{token:form.dataset.token}});if(user)user=await api('/users/me');await render(t('Adres konta, dla kt?rego wys?ano link, zosta? potwierdzony.','The account email this link was sent for has been verified.'));}
       else if(form.id==='forgot-password-form'){await api('/auth/password/request',{method:'POST',body:{email:data.email,language}});await render(t('Jeśli konto istnieje, wysłaliśmy link. Sprawdź również folder spam.','If an account exists, a link has been sent. Check your spam folder too.'));}
       else if(form.id==='reset-password-form'){await api('/auth/password/reset',{method:'POST',body:{token:form.dataset.token,password:data.password}});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render(t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'));}
       else if(form.id==='login-form'){user=await api('/auth/login',{method:'POST',body:data});MatchCatsAPI.resetCSRF();await loadBreeder();await loadSafety();location.hash=breeder?'dashboard':'settings';await render();}
@@ -277,7 +279,12 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       else if(form.id==='photo-upload'){if(data.file.size>5*1024*1024){showError(message({code:'FILE_TOO_LARGE'}));return;}await api('/cats/'+form.dataset.catId+'/photo',{method:'POST',body:new FormData(form)});await render();}
     }catch(error){showError(error,form);}finally{submit.disabled=false;form.removeAttribute('aria-busy');}
   });
-  window.addEventListener('hashchange',()=>{listPage=0;chatPage=0;render();window.scrollTo(0,0);});
+  window.addEventListener('hashchange',event=>{
+    const oldRoute=new URL(event.oldURL).hash.slice(1).split('/')[0];
+    const newRoute=new URL(event.newURL).hash.slice(1).split('/')[0];
+    if(oldRoute!=='messages' || newRoute!=='messages')listPage=0;
+    chatPage=0;render();window.scrollTo(0,0);
+  });
   async function start() {
     shell('login');main.innerHTML=`<div class="live-loading" role="status">${t('Sprawdzanie sesji…','Checking your session…')}</div>`;
     try {user=await api('/users/me');await loadBreeder();await loadSafety();await render();}
