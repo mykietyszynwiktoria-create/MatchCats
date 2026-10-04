@@ -23,15 +23,18 @@ public class ChatService {
     private final CatService cats;
     private final pl.viksi.catsmatch.backend.safety.SafetyService safety;
     private final ChatReadService reads;
+    private final pl.viksi.catsmatch.backend.notifications.NotificationService notifications;
 
     public ChatService(ConversationRepository conversations, MessageRepository messages,
-                       AccountRepository accounts, CatService cats, pl.viksi.catsmatch.backend.safety.SafetyService safety, ChatReadService reads) {
+                       AccountRepository accounts, CatService cats, pl.viksi.catsmatch.backend.safety.SafetyService safety, ChatReadService reads,
+                       pl.viksi.catsmatch.backend.notifications.NotificationService notifications) {
         this.conversations = conversations;
         this.messages = messages;
         this.accounts = accounts;
         this.cats = cats;
         this.safety = safety;
         this.reads = reads;
+        this.notifications = notifications;
     }
 
     private ChatView view(Conversation c, int owner) {
@@ -101,7 +104,10 @@ public class ChatService {
         Conversation chat=accessible(id, author);
         accounts.lockAccounts(List.of(chat.firstOwnerId,chat.secondOwnerId));
         safety.requireContact(chat.firstOwnerId,chat.secondOwnerId);
-        return view(messages.saveAndFlush(new Message(id, author, input.text().strip())));
+        Message saved=messages.saveAndFlush(new Message(id, author, input.text().strip()));
+        int recipient=chat.firstOwnerId.equals(author)?chat.secondOwnerId:chat.firstOwnerId;
+        notifications.message(recipient);
+        return view(saved);
     }
 
     private MessageView view(Message message) {
