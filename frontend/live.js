@@ -142,10 +142,12 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const items=await api('/notifications?limit=50');
     const cards=items.map(item=>{
       const date=new Date(item.createdAt).toLocaleString(language==='en'?'en-US':'pl-PL');
+      const notificationTitle=item.kind==='MESSAGE'?t('Nowa wiadomość','New message'):item.title;
+      const notificationBody=item.kind==='MESSAGE'?t('Otrzymano nową wiadomość w MatchCats.','You received a new MatchCats message.'):item.body;
       const status=item.readAt?'':' notification-unread';
       const badge=item.readAt?'':'<span class="unread-badge">'+t('Nowe','New')+'</span>';
       const action=item.readAt?'':'<button type="button" class="button secondary" data-notification-read="'+item.id+'">'+t('Oznacz jako przeczytane','Mark as read')+'</button>';
-      return '<article class="panel notification-card'+status+'"><div class="notification-heading"><div><h2>'+esc(item.title)+'</h2><p class="muted">'+esc(date)+'</p></div>'+badge+'</div><p>'+esc(item.body)+'</p>'+action+'</article>';
+      return '<article class="panel notification-card'+status+'"><div class="notification-heading"><div><h2>'+esc(notificationTitle)+'</h2><p class="muted">'+esc(date)+'</p></div>'+badge+'</div><p>'+esc(notificationBody)+'</p>'+action+'</article>';
     }).join('');
     return title(t('Powiadomienia','Notifications'),t('Ważne informacje dotyczące Twoich rozmów i konta.','Important updates about your conversations and account.'))+(cards||'<section class="panel">'+t('Nie masz jeszcze powiadomień.','You have no notifications yet.')+'</section>');
   }
