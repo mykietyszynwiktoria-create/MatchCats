@@ -151,6 +151,10 @@ const passwords=[password,password];
   await fill(alice,'login-form',{username:usernames[0],password});await alice.locator('#login-form [type="submit"]').click();
   await alice.locator('#navigation a').first().waitFor();
   await go(alice,'settings');
+  await alice.locator('[data-language=pl]').click();await alice.locator('#email-status').waitFor();
+  await alice.locator('#email-status').getByText('Adres e-mail nie jest jeszcze potwierdzony.',{exact:true}).waitFor();
+  await alice.locator('#request-email-form [type=submit]').click();
+  await alice.locator('#request-email-form [role=alert]').filter({hasText:'Wysyłka e-maili nie jest jeszcze skonfigurowana'}).waitFor();
   await fill(alice,'password-form',{currentPassword:password,newPassword:'NewTemporaryPassword!',confirmPassword:'NewTemporaryPassword!'});
   const changed=alice.waitForResponse(r=>r.url().endsWith('/users/me/password')&&r.status()===204);
   await alice.locator('#password-form [type="submit"]').click();await changed;passwords[0]='NewTemporaryPassword!';
@@ -164,11 +168,34 @@ const passwords=[password,password];
   await go(alice,'reset/'+'A'.repeat(43));await fill(alice,'reset-password-form',{password:'AnotherTestPassword!',confirm:'AnotherTestPassword!'});await alice.locator('#reset-password-form [type=submit]').click();
   await alice.getByRole('alert').filter({hasText:'invalid, already used or expired'}).waitFor();
   for(const width of [320,390,768,1440]){await alice.setViewportSize({width,height:1000});for(const route of ['login','register','forgot','reset/'+'A'.repeat(43)]){await go(alice,route);assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Overflow '+route+' '+width);}}
+  for(const language of ['pl','en']) {
+   await alice.locator('[data-language="'+language+'"]').click();
+   await go(alice,'verify/'+'A'.repeat(43));
+   await alice.locator('#verify-email-form [type=submit]').click();
+   await alice.getByRole('alert').filter({hasText:language==='pl'?'Link potwierdzający jest nieprawidłowy':'This verification link is invalid'}).waitFor();
+   for(const width of [320,390,768,1440]) {
+    await alice.setViewportSize({width,height:1000});await go(alice,'verify/'+'A'.repeat(43));
+    assert.ok(await alice.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Verification overflow '+language+' '+width);
+   }
+  }
+  await alice.setViewportSize({width:1440,height:1000});
+  await alice.locator('[data-language=en]').click();
+  let confirms=0;
+  await alice.route('**/auth/email/confirm',route=>{confirms++;return route.fulfill({status:204});});
+  await go(alice,'verify/'+'A'.repeat(43));await alice.locator('#verify-email-form').waitFor();
+  assert.equal(confirms,0,'Opening a link must not confirm automatically');
+  await alice.locator('#verify-email-form [type=submit]').click();
+  await alice.getByRole('status').filter({hasText:'The account email this link was sent for has been verified.'}).waitFor();
+  assert.equal(confirms,1);assert.equal(await alice.locator('#verify-email-form').count(),0);
+  if(process.env.MATCHCATS_VERIFY_SCREENSHOT)await alice.screenshot({path:process.env.MATCHCATS_VERIFY_SCREENSHOT,fullPage:true});
+  await go(alice,'verify/'+'B'.repeat(43));await alice.locator('#verify-email-form').waitFor();
+  assert.equal(confirms,1,'A second link needs its own explicit confirmation');
+  await alice.unroute('**/auth/email/confirm');
   await alice.route('**/auth/login',route=>route.abort());
   await go(alice,'login');await fill(alice,'login-form',{username:usernames[0],password:passwords[0]});await alice.locator('#login-form [type="submit"]').click();
   await alice.getByRole('alert').filter({hasText:'Cannot reach the server'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('PASS: real registration, duplicate accounts, password mismatch, invalid credentials, sessions, profiles, cats/photos, private/shared documents, download, conversations, escaping, proposals, ownership, password change, logout, expiry, recovery errors, PL/EN, auth layout, network errors and temporary account deletion.');
+  console.log('PASS: real registration, duplicate accounts, password mismatch, invalid credentials, sessions, profiles, cats/photos, private/shared documents, download, conversations, escaping, proposals, ownership, password change, logout, expiry, recovery and verification errors, mocked confirmation UI, PL/EN, auth layout, network errors and temporary account deletion.');
  }catch(error){
   for(const context of contexts)for(const page of context.pages()){try{console.error('DIAGNOSTIC',page.url(),await page.locator('#main').count()?await page.locator('#main').innerText({timeout:2000}):'Page did not load');}catch(diagnosticError){console.error('DIAGNOSTIC unavailable',page.url());}}
   throw error;
