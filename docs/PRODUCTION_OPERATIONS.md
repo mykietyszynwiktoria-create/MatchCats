@@ -29,3 +29,7 @@ The current repository includes development snapshot and restore checks. Product
 
 Real SMTP delivery, mobile/OS push notifications, signed Windows/Android/iOS packages, production hosting and store accounts are not configured in this development release.
 
+
+## Installable web shell
+
+The frontend service worker requires HTTPS in production (localhost is allowed for development). It caches only static interface files and never caches account, message, document or notification API responses. When static assets change, increment the `CACHE_NAME` value in `frontend/service-worker.js`; the activation handler removes older MatchCats shell caches. Verify a fresh browser profile and an existing installed app after each deployment.
