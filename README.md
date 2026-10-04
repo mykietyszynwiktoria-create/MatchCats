@@ -94,3 +94,5 @@ Conversation unread counts persist per account. Bilingual 404/403/network/server
 Inbox verification adds a private account status and single-use 24-hour links. See [Email verification](docs/EMAIL_VERIFICATION.md) for API permissions, SMTP requirements and testing limits.
 
 A stopped local database/application snapshot can be checked in isolation with [Local backup restore](docs/LOCAL_BACKUP_RESTORE.md). This is a development check; production backup and recovery policies remain required.
+
+Documents now have an explicit owner-uploaded/review-requested/verified/rejected workflow. See [Document verification](docs/DOCUMENT_VERIFICATION.md); upload alone never proves authenticity.
