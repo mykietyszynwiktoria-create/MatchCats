@@ -15,7 +15,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const field = (name, label, type='text', value='', attrs='') => `<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
   const formError = '<div class="live-error" role="alert" id="live-error" hidden></div>';
   function icon(name) {
-    const shapes={dashboard:'<path d="m3 10 9-7 9 7v10H15v-7H9v7H3Z"/>',cats:'<ellipse cx="12" cy="16" rx="6" ry="4"/><ellipse cx="5" cy="9" rx="2" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6" rx="2" ry="3"/><ellipse cx="20" cy="10" rx="2" ry="3"/>',search:'<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',messages:'<path d="M21 11a8 8 0 0 1-8 8H8l-5 3V11a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M7 10h10M7 14h6"/>',documents:'<path d="M5 3h10l4 4v14H5Z M15 3v5h4M8 12h8M8 16h8"/>',settings:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>'};
+    const shapes={dashboard:'<path d="m3 10 9-7 9 7v10H15v-7H9v7H3Z"/>',cats:'<ellipse cx="12" cy="16" rx="6" ry="4"/><ellipse cx="5" cy="9" rx="2" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6" rx="2" ry="3"/><ellipse cx="20" cy="10" rx="2" ry="3"/>',search:'<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',messages:'<path d="M21 11a8 8 0 0 1-8 8H8l-5 3V11a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M7 10h10M7 14h6"/>',notifications:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/>',documents:'<path d="M5 3h10l4 4v14H5Z M15 3v5h4M8 12h8M8 16h8"/>',settings:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>'};
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.cats)+'</svg>';
   }
   function message(error) {
@@ -63,7 +63,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     document.querySelector('.demo-chip').textContent=t('Dane na serwerze','Server data');
     document.querySelector('.topbar-label').textContent=t('PANEL HODOWCY','BREEDER PANEL');
     document.querySelector('footer').innerHTML=`MatchCats · ${t('Łączymy hodowców, z troską o koty.','Connecting breeders with care for cats.')}<span>${t('Prywatne konto · Dane w bazie','Private account · Database storage')}</span>`;
-    const nav=[['dashboard',t('Start','Home')],['cats',t('Moje koty','My cats')],['search',t('Szukaj kota','Find a cat')],['proposals',t('Propozycje','Proposals')],['messages',t('Rozmowy','Conversations')],['documents',t('Dokumenty','Documents')],['settings',t('Ustawienia','Settings')]];
+    const nav=[['dashboard',t('Start','Home')],['cats',t('Moje koty','My cats')],['search',t('Szukaj kota','Find a cat')],['proposals',t('Propozycje','Proposals')],['messages',t('Rozmowy','Conversations')],['notifications',t('Powiadomienia','Notifications')],['documents',t('Dokumenty','Documents')],['settings',t('Ustawienia','Settings')]];
     const current=nav.find(x=>x[0]===route)?.[1]||t('Profil','Profile');
     document.querySelector('#breadcrumb').textContent=current;
     document.title=`MatchCats · ${user?current:t('Twoje konto','Your account')}`;
@@ -107,6 +107,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     if(['safety','report','moderation'].includes(route))return MatchCatsSafety.render(route,id,{api,t,esc,title,button,capabilities:safetyCapabilities,page:listPage});
     if(!breeder && route!=='settings') return title(t('Uzupełnij swoją hodowlę','Complete your cattery'))+`<section class="panel"><p>${t('Zapisz informacje o hodowli, zanim dodasz kota lub skontaktujesz się z innym hodowcą.','Save your cattery information before adding a cat or contacting another breeder.')}</p>${button(t('Uzupełnij profil','Complete profile'),'settings')}</section>`;
     if(route==='settings') return settings();
+    if(route==='notifications') return notifications();
     if(route==='cats' || route==='search' || route==='dashboard') return catList(route);
     if(route==='cat') return catDetail(id);
     if(route==='new-cat' || route==='edit-cat') return catForm(route==='edit-cat'?await api('/cats/'+id):null);
@@ -136,6 +137,17 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   function pager(result, type) {
     return `<div class="live-pages"><button class="button secondary" data-page="${Math.max(0,result.page-1)}" data-page-type="${type}" ${result.page===0?'disabled':''}>${t('Poprzednie','Previous')}</button><span>${t('Strona','Page')} ${result.page+1} · ${t('Wyników','Results')}: ${result.total}</span><button class="button secondary" data-page="${result.page+1}" data-page-type="${type}" ${(result.page+1)*result.size>=result.total?'disabled':''}>${t('Następne','Next')}</button></div>`;
+  }
+  async function notifications() {
+    const items=await api('/notifications?limit=50');
+    const cards=items.map(item=>{
+      const date=new Date(item.createdAt).toLocaleString(language==='en'?'en-US':'pl-PL');
+      const status=item.readAt?'':' notification-unread';
+      const badge=item.readAt?'':'<span class="unread-badge">'+t('Nowe','New')+'</span>';
+      const action=item.readAt?'':'<button type="button" class="button secondary" data-notification-read="'+item.id+'">'+t('Oznacz jako przeczytane','Mark as read')+'</button>';
+      return '<article class="panel notification-card'+status+'"><div class="notification-heading"><div><h2>'+esc(item.title)+'</h2><p class="muted">'+esc(date)+'</p></div>'+badge+'</div><p>'+esc(item.body)+'</p>'+action+'</article>';
+    }).join('');
+    return title(t('Powiadomienia','Notifications'),t('Ważne informacje dotyczące Twoich rozmów i konta.','Important updates about your conversations and account.'))+(cards||'<section class="panel">'+t('Nie masz jeszcze powiadomień.','You have no notifications yet.')+'</section>');
   }
   async function catList(route) {
     const own=route==='cats';const home=route==='dashboard';
@@ -211,6 +223,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-page')){if(el.dataset.pageType==='messages')chatPage=Number(el.dataset.page);else listPage=Number(el.dataset.page);render();}
     if(el.hasAttribute('data-refresh'))render();
+    if(el.hasAttribute('data-notification-read'))try{el.disabled=true;await api('/notifications/'+el.dataset.notificationRead+'/read',{method:'POST'});await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-start-checkout'))try{el.disabled=true;await api('/billing/checkout',{method:'POST'});}catch(error){showError(error);}finally{el.disabled=false;}
     if(el.hasAttribute('data-clear-search')){searchFilters={};listPage=0;render();}
     try {
