@@ -73,6 +73,18 @@ class ChatApiTests {
         mvc.perform(get("/chats/unread").with(user("bob"))).andExpect(jsonPath("$.unreadMessages").value(0));
     }
 
+    @Test void newMessagesCreatePrivateNotificationsThatCanBeRead() throws Exception {
+        breeder("alice"); breeder("bob"); long chat=contact(cat("bob"),"alice");
+        send(chat,"alice");
+        String notification=mvc.perform(get("/notifications").with(user("bob")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].kind").value("MESSAGE"))
+            .andExpect(jsonPath("$[0].readAt").value(org.hamcrest.Matchers.nullValue())).andReturn().getResponse().getContentAsString();
+        long id=json.readTree(notification).get(0).get("id").asLong();
+        mvc.perform(post("/notifications/"+id+"/read").with(user("bob")).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/notifications").with(user("bob"))).andExpect(status().isOk()).andExpect(jsonPath("$[0].readAt").exists());
+        mvc.perform(get("/notifications").with(user("alice"))).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+    }
+
     @Test void readReceiptsRequireMembershipCsrfAndValidReceivedIds() throws Exception {
         breeder("alice");breeder("bob");breeder("eve");long chat=contact(cat("bob"),"alice");long message=send(chat,"alice");
         long otherChat=contact(cat("eve"),"alice");long otherMessage=send(otherChat,"alice");
@@ -149,3 +161,4 @@ class ChatApiTests {
             .andExpect(jsonPath("$.items[0].text").value("Second"));
     }
 }
+
