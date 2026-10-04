@@ -49,6 +49,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/password/request", "/auth/password/reset", "/auth/email/confirm").permitAll()
                 .requestMatchers("/error").permitAll().anyRequest().authenticated())
             .requestCache(c -> c.disable()).formLogin(c -> c.disable()).httpBasic(c -> c.disable())
+            .headers(h -> h.contentSecurityPolicy(csp -> csp.policyDirectives(
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+                "img-src 'self' data:; connect-src 'self'; object-src 'none'; " +
+                "base-uri 'self'; frame-ancestors 'none'; form-action 'self'")))
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req,res,ex) -> {
                     res.setStatus(401);res.setContentType("application/json");
