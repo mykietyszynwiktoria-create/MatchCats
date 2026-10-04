@@ -49,10 +49,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/password/request", "/auth/password/reset", "/auth/email/confirm").permitAll()
                 .requestMatchers("/error").permitAll().anyRequest().authenticated())
             .requestCache(c -> c.disable()).formLogin(c -> c.disable()).httpBasic(c -> c.disable())
-            .headers(h -> h.contentSecurityPolicy(csp -> csp.policyDirectives(
-                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-                "img-src 'self' data:; connect-src 'self'; object-src 'none'; " +
-                "base-uri 'self'; frame-ancestors 'none'; form-action 'self'")))
+            .headers(h -> h
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data:; connect-src 'self'; object-src 'none'; " +
+                    "base-uri 'self'; frame-ancestors 'none'; form-action 'self'"))
+                .referrerPolicy(r -> r.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                .permissionsPolicy(p -> p.policy("camera=(), microphone=(), geolocation=()")))
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req,res,ex) -> {
                     res.setStatus(401);res.setContentType("application/json");
