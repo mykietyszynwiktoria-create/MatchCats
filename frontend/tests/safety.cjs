@@ -29,6 +29,25 @@ async function run({url,moderator,password}){
   await go(alice,'moderation');await alice.getByRole('alert').waitFor();assert.equal(await alice.locator('.safety-evidence').count(),0);
   const adminContext=await browser.newContext();contexts.push(adminContext);const admin=await adminContext.newPage();admin.on('dialog',d=>d.accept());admin.on('pageerror',e=>errors.push(e.message));
   await go(admin,'login');await fill(admin,'#login-form',{username:moderator,password});await admin.locator('#login-form [type=submit]').click();await admin.locator('#breeder-form').waitFor();
+  const csrf=await(await contexts[1].request.get(url+'/auth/csrf')).json();
+  const uploaded=await contexts[1].request.post(url+'/cats/'+cat+'/documents',{headers:{[csrf.headerName]:csrf.token},multipart:{kind:'PEDIGREE',file:{name:'review-test.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7\nReview signature fixture')}}});
+  assert.equal(uploaded.status(),201);const document=(await uploaded.json()).id;
+  await go(bob,'cat/'+cat);let requested=bob.waitForResponse(r=>r.url().endsWith('/documents/'+document+'/verification-request')&&r.request().method()==='POST');await bob.locator('[data-request-verification="'+document+'"]').click();assert.equal((await requested).status(),200);
+  await bob.locator('[data-request-verification="'+document+'"]:disabled').waitFor();
+  await go(admin,'moderation/documents');await admin.locator('.document-review-decision').waitFor();
+  for(const language of ['pl','en']){
+   await admin.locator('[data-language="'+language+'"]').click();await admin.locator('.document-review-decision').waitFor();
+   for(const width of [320,390,768,1440]){
+    await admin.setViewportSize({width,height:1000});
+    assert.equal(await admin.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Document review overflow '+width);
+   }
+  }
+  const review=admin.locator('.document-review-decision');await review.locator('[name=note]').fill('Please upload a readable scan.');await review.locator('[type=submit]').click();await review.waitFor({state:'hidden'});
+  await go(bob,'cat/'+cat);assert.match(await bob.locator('.live-file-row').innerText(),/Please upload a readable scan/);
+  requested=bob.waitForResponse(r=>r.url().endsWith('/documents/'+document+'/verification-request')&&r.request().method()==='POST');await bob.locator('[data-request-verification="'+document+'"]').click();assert.equal((await requested).status(),200);await bob.locator('[data-request-verification="'+document+'"]:disabled').waitFor();
+  await go(admin,'moderation/documents');await review.waitFor();await review.locator('[name=status]').selectOption('VERIFIED');await review.locator('[name=note]').fill('Checked with the issuing registry in this test.');await review.locator('[type=submit]').click();await review.waitFor({state:'hidden'});
+  await go(bob,'cat/'+cat);assert.match(await bob.locator('.live-file-row').innerText(),/Checked with the issuing registry/);assert.equal(await bob.locator('[data-request-verification="'+document+'"]').isDisabled(),true);
+  console.log('PASS: document owner request, moderator rejection, owner explanation, resubmission, approval, PL/EN and responsive review screens.');
   await go(admin,'moderation');await admin.locator('.moderation-decision').first().waitFor();assert.equal(await admin.locator('.safety-evidence img').count(),0);
   if(process.env.MATCHCATS_SAFETY_SCREENSHOTS){fs.mkdirSync(process.env.MATCHCATS_SAFETY_SCREENSHOTS,{recursive:true});await admin.screenshot({path:path.join(process.env.MATCHCATS_SAFETY_SCREENSHOTS,'MatchCats-panel-moderatora.png'),fullPage:true});}
   for(const language of ['pl','en']){
