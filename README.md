@@ -12,7 +12,7 @@ MatchCats helps pedigree cat breeders browse profiles and contact owners. The pr
 
 - Safety: bidirectional contact blocks, private reports, restricted moderator review, account suspension/reinstatement and 90-day evidence retention. See [safety operations](docs/SAFETY.md). Moderator assignment is disabled until configured for an existing account.
 
-- Outstanding: email-provider activation, email-address verification, actual moderator assignment and operations, notifications, production operations and Windows/Android/iOS store packages. Document uploads do not verify authenticity.
+- Outstanding: email-provider activation, email-address verification, actual moderator assignment and operations, notifications, production operations and Windows/Android/iOS store packages. Billing is currently a safe FREE/PREMIUM foundation with checkout disabled until a provider is configured. Document uploads do not verify authenticity.
 
 An owner-declared health status or profile is not independent verification of health, pedigree or breeding suitability.
 
@@ -46,7 +46,7 @@ $env:DB_PASSWORD='<the password you put in .env>'
 
 ```
 
-The API starts on port 8080. `GET /health` reports application startup; it is not a comprehensive readiness or database-health probe. See [backend API notes](docs/BACKEND.md) for session cookies, CSRF tokens, profile JSON and endpoint permissions.
+The API starts on port 8080. `GET /health` reports application startup. `GET /health/ready` additionally checks the PostgreSQL connection and returns 503 when the database is unavailable. See [backend API notes](docs/BACKEND.md) for session cookies, CSRF tokens, profile JSON and endpoint permissions. Billing endpoints and activation safeguards are documented in [billing readiness](docs/BILLING.md).
 
 ## Run tests and build
 
@@ -96,3 +96,4 @@ Inbox verification adds a private account status and single-use 24-hour links. S
 A stopped local database/application snapshot can be checked in isolation with [Local backup restore](docs/LOCAL_BACKUP_RESTORE.md). This is a development check; production backup and recovery policies remain required.
 
 Documents now have an explicit owner-uploaded/review-requested/verified/rejected workflow. See [Document verification](docs/DOCUMENT_VERIFICATION.md); upload alone never proves authenticity.
+
