@@ -2,7 +2,7 @@
 window.MatchCatsLegal=(()=>{
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const t=(pl,en,language)=>language==='en'?en:pl;
-  function page(kind,language){
+  function page(kind,language,signedIn=false){
     const privacy=kind==='privacy';
     const title=privacy?t('Polityka prywatności','Privacy policy',language):t('Regulamin MatchCats','MatchCats terms of use',language);
     const paragraphs=privacy?[
@@ -16,7 +16,9 @@ window.MatchCatsLegal=(()=>{
       t('Moderator może rozpatrywać zgłoszenia i dokumenty zgodnie z ustaloną procedurą. Nie wolno obchodzić blokad, próbować uzyskać cudzych plików ani podszywać się pod moderatora.','Moderators may review reports and documents under the established procedure. Do not bypass blocks, seek other users’ files or impersonate a moderator.',language),
       t('Przed publikacją właściciel projektu musi dodać dane operatora, procedurę reklamacji i właściwe wymagania prawne dla kraju działania.','Before publication, the project owner must add operator details, an appeal procedure and the legal requirements for each country of operation.',language)
     ];
-    return `<section class="panel live-page legal-page"><h1>${esc(title)}</h1><p class="muted">${esc(t('Wersja robocza do uzupełnienia przed publikacją.','Draft to complete before publication.',language))}</p>${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}<p class="notice">${esc(t('Ta strona nie zastępuje porady prawnej.','This page is not legal advice.',language))}</p><div class="live-tools"><a class="button secondary" href="#login">${esc(t('Wróć do logowania','Back to sign in',language))}</a></div></section>`;
+    const backHref=signedIn?'#settings':'#login';
+    const backLabel=signedIn?t('Wróć do ustawień','Back to Settings',language):t('Wróć do logowania','Back to sign in',language);
+    return `<section class="panel live-page legal-page"><h1>${esc(title)}</h1><p class="muted">${esc(t('Wersja robocza do uzupełnienia przed publikacją.','Draft to complete before publication.',language))}</p>${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}<p class="notice">${esc(t('Ta strona nie zastępuje porady prawnej.','This page is not legal advice.',language))}</p><div class="live-tools"><a class="button secondary" href="${backHref}">${esc(backLabel)}</a></div></section>`;
   }
   return {page};
 })();
