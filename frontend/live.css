@@ -67,3 +67,9 @@ button:disabled { cursor:wait; opacity:.6; }
 .plans-page .price { color:#155dcc; font-size:25px; font-weight:750; margin:8px 0 18px; }
 .plans-page ul { margin:0; padding-left:22px; line-height:1.8; }
 .plans-page .notice { margin-top:22px; }
+
+.notification-card { margin:18px 0; }
+.notification-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.notification-heading h2 { margin:0 0 5px; }
+.notification-card.notification-unread { border-color:#86b9f4; box-shadow:0 4px 16px rgba(21,93,204,.10); }
+.notification-card .button { margin-top:8px; }
