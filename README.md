@@ -12,7 +12,7 @@ MatchCats helps pedigree cat breeders browse profiles and contact owners. The pr
 
 - Safety: bidirectional contact blocks, private reports, restricted moderator review, account suspension/reinstatement and 90-day evidence retention. See [safety operations](docs/SAFETY.md). Moderator assignment is disabled until configured for an existing account.
 
-- Outstanding: email-provider activation, email-address verification, actual moderator assignment and operations, notifications, production operations and Windows/Android/iOS store packages. Billing is currently a safe FREE/PREMIUM foundation with checkout disabled until a provider is configured. Document uploads do not verify authenticity.
+- Outstanding: email-provider activation, email-address verification, actual moderator assignment and operations, production operations and Windows/Android/iOS store packages. In-app notifications and an installable web shell are now implemented; native store packaging remains. Billing is currently a safe FREE/PREMIUM foundation with checkout disabled until a provider is configured. Document uploads do not verify authenticity.
 
 An owner-declared health status or profile is not independent verification of health, pedigree or breeding suitability.
 
@@ -97,3 +97,6 @@ A stopped local database/application snapshot can be checked in isolation with [
 
 Documents now have an explicit owner-uploaded/review-requested/verified/rejected workflow. See [Document verification](docs/DOCUMENT_VERIFICATION.md); upload alone never proves authenticity.
 
+
+
+Installable app metadata and the static shell service worker are documented in [Installable app foundation](docs/INSTALLABLE_APP.md). Device checks are listed in [Device testing](docs/DEVICE_TESTING.md).
