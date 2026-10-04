@@ -24,6 +24,7 @@ public class DocumentService {
     public record Sharing(@NotNull CatDocument.Visibility visibility) {}
     public record Decision(@NotNull CatDocument.VerificationStatus status,
         @NotNull Instant requestedAt, @NotBlank @Size(max=1000) String note) {}
+    public record Appeal(@NotBlank @Size(min=10, max=1000) String note) {}
     private final DocumentRepository documents;
     private final CatService cats;
     private final CatRepository catRepository;
@@ -165,7 +166,22 @@ public class DocumentService {
             document.verificationRequestedAt = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
             document.verificationReviewedAt = null;
             document.verificationNote = null;
+            document.verificationAppealNote = null;
         }
+        return view(documents.saveAndFlush(document));
+    }
+
+    @Transactional
+    public DocumentView appeal(long id, Authentication auth, Appeal input) {
+        CatDocument document = lockedDocument(id);
+        cats.owned(document.catId, auth);
+        if (document.verificationStatus != CatDocument.VerificationStatus.REJECTED)
+            throw new ApiException(HttpStatus.CONFLICT, "DOCUMENT_APPEAL_UNAVAILABLE", "Only a rejected document can be appealed");
+        document.verificationStatus = CatDocument.VerificationStatus.REVIEW_REQUESTED;
+        document.verificationRequestedAt = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        document.verificationReviewedAt = null;
+        document.verificationNote = null;
+        document.verificationAppealNote = input.note().strip();
         return view(documents.saveAndFlush(document));
     }
 
@@ -179,6 +195,7 @@ public class DocumentService {
 
     private DocumentView view(CatDocument d) {
         return new DocumentView(d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt,
-            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt, d.verificationNote);
+            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt,
+            d.verificationNote, d.verificationAppealNote);
     }
 }

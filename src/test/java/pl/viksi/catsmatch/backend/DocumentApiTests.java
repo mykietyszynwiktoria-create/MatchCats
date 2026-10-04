@@ -213,4 +213,19 @@ class DocumentApiTests {
         String decision = json.writeValueAsString(java.util.Map.of("status","VERIFIED","requestedAt",json.readTree(requested).get("verificationRequestedAt").asText(),"note","Own review prohibited"));
         mvc.perform(post("/moderation/documents/"+id+"/decision").with(user("moderator")).with(csrf()).contentType("application/json").content(decision)).andExpect(status().isForbidden());
     }
+
+    @Test void rejectedDocumentCanBeAppealedWithOwnerExplanation() throws Exception {
+        int cat = fixture(); long id = upload(cat);
+        db.update("INSERT INTO mc_accounts(id,username,password_hash,email,first_name,surname) VALUES (2000000000,'moderator',?,'moderator@example.test','Test','Moderator')", encoder.encode("StrongTestPassword!"));
+        String requested = mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf())).andReturn().getResponse().getContentAsString();
+        String rejected = json.writeValueAsString(java.util.Map.of("status","REJECTED","requestedAt",json.readTree(requested).get("verificationRequestedAt").asText(),"note","The scan is not readable enough."));
+        mvc.perform(post("/moderation/documents/"+id+"/decision").with(user("moderator")).with(csrf()).contentType("application/json").content(rejected)).andExpect(status().isOk());
+        mvc.perform(post("/documents/"+id+"/verification-appeal").with(user("alice")).with(csrf()).contentType("application/json").content("{\"note\":\"Here is the issuing registry reference.\"}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("REVIEW_REQUESTED"))
+            .andExpect(jsonPath("$.verificationAppealNote").value("Here is the issuing registry reference."));
+        mvc.perform(post("/documents/"+id+"/verification-appeal").with(user("bob")).with(csrf()).contentType("application/json").content("{\"note\":\"Not my file appeal.\"}"))
+            .andExpect(status().isForbidden());
+        mvc.perform(post("/documents/"+id+"/verification-appeal").with(user("alice")).with(csrf()).contentType("application/json").content("{\"note\":\"short\"}"))
+            .andExpect(status().isBadRequest());
+    }
 }

@@ -21,7 +21,7 @@ public interface DocumentRepository extends JpaRepository<CatDocument, Long> {
     @Query("""
         select new pl.viksi.catsmatch.backend.documents.DocumentView(
             d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt,
-            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt, d.verificationNote)
+            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt, d.verificationNote, d.verificationAppealNote)
         from CatDocument d, Cat c where c.id = d.catId and c.ownerId <> :reviewer
             and d.verificationStatus = :status
         order by d.verificationRequestedAt, d.id
@@ -33,7 +33,8 @@ public interface DocumentRepository extends JpaRepository<CatDocument, Long> {
         select new pl.viksi.catsmatch.backend.documents.DocumentView(
             d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt,
             d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt,
-            case when :owner = true then d.verificationNote else null end)
+            case when :owner = true then d.verificationNote else null end,
+            case when :owner = true then d.verificationAppealNote else null end)
         from CatDocument d where d.catId = :cat and (:owner = true or d.visibility = :shared)
         order by d.id
         """)

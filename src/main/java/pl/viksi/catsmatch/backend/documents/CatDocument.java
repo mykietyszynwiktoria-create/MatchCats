@@ -19,6 +19,7 @@ public class CatDocument {
     @Column(name="verification_requested_at") public Instant verificationRequestedAt;
     @Column(name="verification_reviewed_at") public Instant verificationReviewedAt;
     @Column(name="verification_note", length=1000) public String verificationNote;
+    @Column(name="verification_appeal_note", length=1000) public String verificationAppealNote;
     @Column(nullable = false) public int bytes;
     @Column(nullable = false, columnDefinition = "bytea") public byte[] content;
     @Column(name = "created_at", nullable = false) public Instant createdAt;

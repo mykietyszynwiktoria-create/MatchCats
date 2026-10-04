@@ -72,6 +72,12 @@ public class DocumentController {
         return documents.requestVerification(id, auth);
     }
 
+    @PostMapping("/documents/{id}/verification-appeal")
+    public DocumentView appeal(@PathVariable long id, Authentication auth,
+        @Valid @RequestBody DocumentService.Appeal input) {
+        return documents.appeal(id, auth, input);
+    }
+
     @DeleteMapping("/documents/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable long id, Authentication auth) {
