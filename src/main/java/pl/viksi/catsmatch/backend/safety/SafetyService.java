@@ -55,7 +55,7 @@ public class SafetyService {
     public Capabilities capabilities(Authentication auth) {
         return new Capabilities(moderators.contains(service.current(auth).id), !moderators.isEmpty());
     }
-    private int moderator(Authentication auth) {
+    public int moderator(Authentication auth) {
         int id=service.current(auth).id;
         if(!moderators.contains(id))throw ApiException.forbidden();
         return id;

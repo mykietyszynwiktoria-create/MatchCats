@@ -1,6 +1,10 @@
 package pl.viksi.catsmatch.backend.documents;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.domain.PageRequest;
+import pl.viksi.catsmatch.backend.safety.SafetyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -18,14 +22,21 @@ public class DocumentService {
     public static final int MAX_BYTES = 5 * 1024 * 1024;
     public static final int MAX_FILES = 10;
     public record Sharing(@NotNull CatDocument.Visibility visibility) {}
+    public record Decision(@NotNull CatDocument.VerificationStatus status,
+        @NotNull Instant requestedAt, @NotBlank @Size(max=1000) String note) {}
     private final DocumentRepository documents;
     private final CatService cats;
     private final CatRepository catRepository;
+    private final SafetyService safety;
+    private final org.springframework.jdbc.core.JdbcTemplate db;
 
-    public DocumentService(DocumentRepository documents, CatService cats, CatRepository catRepository) {
+    public DocumentService(DocumentRepository documents, CatService cats, CatRepository catRepository, SafetyService safety,
+        org.springframework.jdbc.core.JdbcTemplate db) {
         this.documents = documents;
         this.cats = cats;
         this.catRepository = catRepository;
+        this.safety = safety;
+        this.db = db;
     }
 
     private Cat lockedOwned(int catId, Authentication auth) {
@@ -73,6 +84,48 @@ public class DocumentService {
         return documents.findById(id).orElseThrow(() -> ApiException.missing("Document"));
     }
 
+    private CatDocument lockedDocument(long id) {
+        int catId = documents.catId(id).orElseThrow(() -> ApiException.missing("Document"));
+        catRepository.lockCats(List.of(catId));
+        return documents.locked(id).orElseThrow(() -> ApiException.missing("Document"));
+    }
+
+    @Transactional(readOnly = true)
+    public CatService.PageView<DocumentView> queue(Authentication auth, int page, int size) {
+        int reviewer = safety.moderator(auth);
+        if (page < 0 || size < 1 || size > 20) throw ApiException.invalid("Invalid page size or number");
+        var result = documents.reviewQueue(reviewer, CatDocument.VerificationStatus.REVIEW_REQUESTED, PageRequest.of(page, size));
+        return new CatService.PageView<>(result.getContent(), result.getTotalElements(), page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public CatDocument reviewDownload(long id, Authentication auth) {
+        int reviewer = safety.moderator(auth);
+        CatDocument d = document(id);
+        if (cats.cat(d.catId).ownerId.equals(reviewer) || d.verificationStatus != CatDocument.VerificationStatus.REVIEW_REQUESTED)
+            throw ApiException.forbidden();
+        return d;
+    }
+
+    @Transactional
+    public DocumentView decide(long id, Authentication auth, Decision input) {
+        int reviewer = safety.moderator(auth);
+        if (input.status() != CatDocument.VerificationStatus.VERIFIED && input.status() != CatDocument.VerificationStatus.REJECTED)
+            throw ApiException.invalid("Choose VERIFIED or REJECTED");
+        CatDocument d = lockedDocument(id);
+        if (cats.cat(d.catId).ownerId.equals(reviewer)) throw ApiException.forbidden();
+        if (d.verificationStatus != CatDocument.VerificationStatus.REVIEW_REQUESTED
+            || !d.verificationRequestedAt.equals(input.requestedAt()))
+            throw new ApiException(HttpStatus.CONFLICT, "DOCUMENT_REVIEW_CHANGED", "Reload the review queue before deciding");
+        d.verificationStatus = input.status();
+        d.verificationReviewedAt = Instant.now();
+        d.verificationNote = input.note().strip();
+        db.update("INSERT INTO mc_document_reviews(document_id,reviewer_id,requested_at,reviewed_at,status,note) VALUES (?,?,?,?,?,?)",
+            d.id, reviewer, java.sql.Timestamp.from(d.verificationRequestedAt), java.sql.Timestamp.from(d.verificationReviewedAt),
+            d.verificationStatus.name(), d.verificationNote);
+        return view(documents.saveAndFlush(d));
+    }
+
     @Transactional(readOnly = true)
     public List<DocumentView> list(int catId, Authentication auth) {
         Cat cat = cats.cat(catId);
@@ -95,7 +148,7 @@ public class DocumentService {
 
     @Transactional
     public DocumentView share(long id, Authentication auth, Sharing input) {
-        CatDocument document = document(id);
+        CatDocument document = lockedDocument(id);
         cats.owned(document.catId, auth);
         document.visibility = input.visibility();
         return view(documents.saveAndFlush(document));
@@ -103,13 +156,13 @@ public class DocumentService {
 
     @Transactional
     public DocumentView requestVerification(long id, Authentication auth) {
-        CatDocument document = document(id);
+        CatDocument document = lockedDocument(id);
         cats.owned(document.catId, auth);
         if (document.verificationStatus == CatDocument.VerificationStatus.VERIFIED)
             throw new ApiException(HttpStatus.CONFLICT, "DOCUMENT_ALREADY_VERIFIED", "This document is already verified");
         if (document.verificationStatus != CatDocument.VerificationStatus.REVIEW_REQUESTED) {
             document.verificationStatus = CatDocument.VerificationStatus.REVIEW_REQUESTED;
-            document.verificationRequestedAt = Instant.now();
+            document.verificationRequestedAt = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
             document.verificationReviewedAt = null;
             document.verificationNote = null;
         }
@@ -118,7 +171,7 @@ public class DocumentService {
 
     @Transactional
     public void delete(long id, Authentication auth) {
-        CatDocument document = document(id);
+        CatDocument document = lockedDocument(id);
         cats.owned(document.catId, auth);
         documents.delete(document);
         documents.flush();

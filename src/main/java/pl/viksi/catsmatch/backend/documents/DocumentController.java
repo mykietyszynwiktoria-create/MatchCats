@@ -28,6 +28,26 @@ public class DocumentController {
     @GetMapping("/documents/{id}/download")
     public ResponseEntity<byte[]> download(@PathVariable long id, Authentication auth) {
         CatDocument document = documents.download(id, auth);
+        return file(document);
+    }
+
+    @GetMapping("/moderation/documents")
+    public pl.viksi.catsmatch.backend.cats.CatService.PageView<DocumentView> queue(Authentication auth,
+        @RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="20") int size) {
+        return documents.queue(auth, page, size);
+    }
+
+    @GetMapping("/moderation/documents/{id}/download")
+    public ResponseEntity<byte[]> reviewDownload(@PathVariable long id, Authentication auth) {
+        return file(documents.reviewDownload(id, auth));
+    }
+
+    @PostMapping("/moderation/documents/{id}/decision")
+    public DocumentView decision(@PathVariable long id, Authentication auth, @Valid @RequestBody DocumentService.Decision input) {
+        return documents.decide(id, auth, input);
+    }
+
+    private ResponseEntity<byte[]> file(CatDocument document) {
         String extension = switch (document.mediaType) {
             case "application/pdf" -> ".pdf";
             case "image/png" -> ".png";

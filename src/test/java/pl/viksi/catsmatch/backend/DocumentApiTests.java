@@ -22,7 +22,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest @AutoConfigureMockMvc @ActiveProfiles("test") @Transactional
+@SpringBootTest(properties="app.moderation.account-ids=2000000000") @AutoConfigureMockMvc @ActiveProfiles("test") @Transactional
 class DocumentApiTests {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
@@ -30,6 +30,8 @@ class DocumentApiTests {
     @Autowired CatService cats;
     @Autowired DocumentRepository documents;
     @Autowired EntityManager entities;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate db;
+    @Autowired org.springframework.security.crypto.password.PasswordEncoder encoder;
     final byte[] pdf = "%PDF-1.7\nTest signature fixture".getBytes(StandardCharsets.US_ASCII);
 
     int fixture() {
@@ -155,5 +157,60 @@ class DocumentApiTests {
             .andExpect(status().isForbidden());
         mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")))
             .andExpect(status().isForbidden());
+    }
+
+    @Test void moderatorReviewIsPrivateRequiresFreshRequestAndKeepsAudit() throws Exception {
+        int cat = fixture(); long id = upload(cat);
+        db.update("INSERT INTO mc_accounts(id,username,password_hash,email,first_name,surname) VALUES (2000000000,'moderator',?,'moderator@example.test','Test','Moderator')", encoder.encode("StrongTestPassword!"));
+        String download = "/moderation/documents/"+id+"/download";
+        String decision = "/moderation/documents/"+id+"/decision";
+        mvc.perform(get(download).with(user("moderator"))).andExpect(status().isForbidden());
+        String request = mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf()))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String token = json.readTree(request).get("verificationRequestedAt").asText();
+        mvc.perform(get("/moderation/documents").with(user("alice").roles("ADMIN"))).andExpect(status().isForbidden());
+        mvc.perform(get("/moderation/documents").with(user("moderator")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.items[0].content").doesNotExist());
+        mvc.perform(get(download).with(user("moderator"))).andExpect(status().isOk()).andExpect(content().bytes(pdf));
+        mvc.perform(get(download).with(user("bob"))).andExpect(status().isForbidden());
+        String body = json.writeValueAsString(java.util.Map.of("status","REJECTED","requestedAt",token,"note","Please provide a legible scan."));
+        for (String invalid : new String[]{"{}", json.writeValueAsString(java.util.Map.of("status","OWNER_UPLOADED","requestedAt",token,"note","Invalid status")), json.writeValueAsString(java.util.Map.of("status","VERIFIED","requestedAt",token,"note","  "))}) {
+            mvc.perform(post(decision).with(user("moderator")).with(csrf()).contentType("application/json").content(invalid)).andExpect(status().isBadRequest());
+        }
+        mvc.perform(post(decision).with(user("alice")).with(csrf()).contentType("application/json").content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(decision).with(user("moderator")).contentType("application/json").content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(decision).with(user("moderator")).with(csrf()).contentType("application/json").content(body))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("REJECTED"));
+        mvc.perform(post(decision).with(user("moderator")).with(csrf()).contentType("application/json").content(body)).andExpect(status().isConflict());
+        mvc.perform(get(download).with(user("moderator"))).andExpect(status().isForbidden());
+        mvc.perform(put("/documents/"+id+"/visibility").with(user("alice")).with(csrf()).contentType("application/json").content("{\"visibility\":\"BREEDERS\"}"));
+        mvc.perform(get("/cats/"+cat+"/documents").with(user("alice"))).andExpect(jsonPath("$[0].verificationNote").value("Please provide a legible scan."));
+        mvc.perform(get("/cats/"+cat+"/documents").with(user("bob"))).andExpect(jsonPath("$[0].verificationNote").isEmpty());
+        request = mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf()))
+            .andReturn().getResponse().getContentAsString();
+        String fresh = json.readTree(request).get("verificationRequestedAt").asText();
+        assertNotEquals(token, fresh);
+        mvc.perform(post(decision).with(user("moderator")).with(csrf()).contentType("application/json").content(body)).andExpect(status().isConflict());
+        String accepted = json.writeValueAsString(java.util.Map.of("status","VERIFIED","requestedAt",fresh,"note","Checked against the issuing registry."));
+        mvc.perform(post(decision).with(user("moderator")).with(csrf()).contentType("application/json").content(accepted))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("VERIFIED"));
+        mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf())).andExpect(status().isConflict());
+        assertEquals(2, db.queryForObject("SELECT count(*) FROM mc_document_reviews WHERE document_id=?", Integer.class, id));
+        mvc.perform(delete("/documents/"+id).with(user("alice")).with(csrf())).andExpect(status().isNoContent());
+        assertEquals(0, db.queryForObject("SELECT count(*) FROM mc_document_reviews WHERE document_id=?", Integer.class, id));
+    }
+
+    @Test void moderatorCannotReviewOwnDocument() throws Exception {
+        fixture();
+        db.update("INSERT INTO mc_accounts(id,username,password_hash,email,first_name,surname) VALUES (2000000000,'moderator',?,'moderator@example.test','Test','Moderator')", encoder.encode("StrongTestPassword!"));
+        var auth = UsernamePasswordAuthenticationToken.authenticated("moderator", null, List.of());
+        cats.saveBreeder(auth, new CatService.BreederInput("Moderator Cats", "Warsaw", "Poland", ""));
+        int cat = cats.create(auth, new CatService.CatInput("Mia", "Maine Coon", Cat.Sex.FEMALE, Cat.Health.HEALTHY, LocalDate.of(2022,1,1), "Warsaw", "Poland", "", true)).id();
+        String uploaded = mvc.perform(multipart("/cats/"+cat+"/documents").file(new MockMultipartFile("file","own.pdf","application/pdf",pdf)).param("kind","PEDIGREE").with(user("moderator")).with(csrf())).andReturn().getResponse().getContentAsString();
+        long id = json.readTree(uploaded).get("id").asLong();
+        String requested = mvc.perform(post("/documents/"+id+"/verification-request").with(user("moderator")).with(csrf())).andReturn().getResponse().getContentAsString();
+        mvc.perform(get("/moderation/documents").with(user("moderator"))).andExpect(jsonPath("$.total").value(0));
+        String decision = json.writeValueAsString(java.util.Map.of("status","VERIFIED","requestedAt",json.readTree(requested).get("verificationRequestedAt").asText(),"note","Own review prohibited"));
+        mvc.perform(post("/moderation/documents/"+id+"/decision").with(user("moderator")).with(csrf()).contentType("application/json").content(decision)).andExpect(status().isForbidden());
     }
 }
