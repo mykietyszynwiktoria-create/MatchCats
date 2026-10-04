@@ -9,5 +9,6 @@ public interface PasswordResetRepository extends JpaRepository<PasswordResetToke
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from PasswordResetToken t where t.tokenHash = :hash")
     Optional<PasswordResetToken> locked(@Param("hash") String hash);
+    Optional<PasswordResetToken> findByAccountId(Integer accountId);
     void deleteAllByAccountId(Integer accountId);
 }

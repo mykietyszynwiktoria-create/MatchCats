@@ -52,9 +52,14 @@ public class PasswordRecovery {
         var found=accounts.lockByEmail(input.email().strip().toLowerCase(Locale.ROOT));
         if(found.isEmpty())return; // Same success response for an unknown address.
         Account account=found.get();if(account.suspended)return;
+        Instant now=Instant.now();
+        // Keep the existing link valid during the cooldown, even when requests
+        // arrive from different addresses. Preserve the unknown-email response.
+        if(tokens.findByAccountId(account.id)
+            .filter(token -> token.expiresAt.minusSeconds(900).plusSeconds(60).isAfter(now)).isPresent())return;
         tokens.deleteAllByAccountId(account.id);tokens.flush();
         byte[] bytes=new byte[32];random.nextBytes(bytes);String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        tokens.saveAndFlush(new PasswordResetToken(hash(token),account.id,Instant.now().plusSeconds(900)));
+        tokens.saveAndFlush(new PasswordResetToken(hash(token),account.id,now.plusSeconds(900)));
         String link=base+"/#reset/"+token;
         send(account.email,"MatchCats - password reset",input.language().equals("pl")?"Aby ustawić nowe hasło MatchCats, otwórz link (ważny 15 minut):\n"+link+"\nJeśli nie proszono o zmianę, zignoruj tę wiadomość.":"To reset your MatchCats password, open this link (valid for 15 minutes):\n"+link+"\nIf you did not request this, ignore this message.");
     }
