@@ -37,6 +37,9 @@ class AccountApiTests {
             count++;
         }
         assertTrue(count>0,"The public entry page must reference application scripts");
+        mvc.perform(get("/manifest.webmanifest")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("MatchCats"));
+        mvc.perform(get("/service-worker.js")).andExpect(status().isOk());
         mvc.perform(get("/users/me")).andExpect(status().isUnauthorized());
     }
     @Test void emailVerificationReportsUnavailableDelivery() throws Exception {
