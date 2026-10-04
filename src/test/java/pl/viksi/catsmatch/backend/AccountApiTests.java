@@ -21,6 +21,18 @@ class AccountApiTests {
     @Autowired MockMvc mvc;
     @Autowired AccountRepository accounts;
     @Autowired ObjectMapper json;
+    @Test void anonymousVisitorsCanLoadAllEntryPageScripts() throws Exception {
+        String html=mvc.perform(get("/index.html")).andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        var scripts=java.util.regex.Pattern.compile("<script\\s+src=\"([^\"]+)\"").matcher(html);
+        int count=0;
+        while(scripts.find()){
+            mvc.perform(get("/"+scripts.group(1))).andExpect(status().isOk());
+            count++;
+        }
+        assertTrue(count>0,"The public entry page must reference application scripts");
+        mvc.perform(get("/users/me")).andExpect(status().isUnauthorized());
+    }
     @Test void emailVerificationReportsUnavailableDelivery() throws Exception {
         mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("mailoff")))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.emailVerified").value(false));
