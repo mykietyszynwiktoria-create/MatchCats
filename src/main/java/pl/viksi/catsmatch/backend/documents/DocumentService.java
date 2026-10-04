@@ -10,6 +10,7 @@ import pl.viksi.catsmatch.backend.cats.*;
 import pl.viksi.catsmatch.backend.common.ApiException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -101,6 +102,21 @@ public class DocumentService {
     }
 
     @Transactional
+    public DocumentView requestVerification(long id, Authentication auth) {
+        CatDocument document = document(id);
+        cats.owned(document.catId, auth);
+        if (document.verificationStatus == CatDocument.VerificationStatus.VERIFIED)
+            throw new ApiException(HttpStatus.CONFLICT, "DOCUMENT_ALREADY_VERIFIED", "This document is already verified");
+        if (document.verificationStatus != CatDocument.VerificationStatus.REVIEW_REQUESTED) {
+            document.verificationStatus = CatDocument.VerificationStatus.REVIEW_REQUESTED;
+            document.verificationRequestedAt = Instant.now();
+            document.verificationReviewedAt = null;
+            document.verificationNote = null;
+        }
+        return view(documents.saveAndFlush(document));
+    }
+
+    @Transactional
     public void delete(long id, Authentication auth) {
         CatDocument document = document(id);
         cats.owned(document.catId, auth);
@@ -109,6 +125,7 @@ public class DocumentService {
     }
 
     private DocumentView view(CatDocument d) {
-        return new DocumentView(d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt);
+        return new DocumentView(d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt,
+            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt, d.verificationNote);
     }
 }

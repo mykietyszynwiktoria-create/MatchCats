@@ -47,6 +47,11 @@ public class DocumentController {
         return documents.share(id, auth, input);
     }
 
+    @PostMapping("/documents/{id}/verification-request")
+    public DocumentView requestVerification(@PathVariable long id, Authentication auth) {
+        return documents.requestVerification(id, auth);
+    }
+
     @DeleteMapping("/documents/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable long id, Authentication auth) {

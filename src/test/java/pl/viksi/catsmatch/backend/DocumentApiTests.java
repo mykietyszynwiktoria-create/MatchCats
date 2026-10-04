@@ -144,4 +144,16 @@ class DocumentApiTests {
         entities.clear();
         assertEquals(0,documents.countByCatId(cat));
     }
+
+    @Test void ownerCanRequestReviewButUploadIsNotAutomaticallyVerified() throws Exception {
+        int cat = fixture(); long id = upload(cat);
+        mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf()))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("REVIEW_REQUESTED"));
+        mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")).with(csrf()))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.verification").value("REVIEW_REQUESTED"));
+        mvc.perform(post("/documents/"+id+"/verification-request").with(user("bob")).with(csrf()))
+            .andExpect(status().isForbidden());
+        mvc.perform(post("/documents/"+id+"/verification-request").with(user("alice")))
+            .andExpect(status().isForbidden());
+    }
 }

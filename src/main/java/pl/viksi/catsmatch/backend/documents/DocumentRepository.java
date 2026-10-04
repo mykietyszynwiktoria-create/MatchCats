@@ -9,7 +9,8 @@ public interface DocumentRepository extends JpaRepository<CatDocument, Long> {
 
     @Query("""
         select new pl.viksi.catsmatch.backend.documents.DocumentView(
-            d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt)
+            d.id, d.catId, d.filename, d.mediaType, d.kind, d.visibility, d.bytes, d.createdAt,
+            d.verificationStatus, d.verificationRequestedAt, d.verificationReviewedAt, d.verificationNote)
         from CatDocument d where d.catId = :cat and (:owner = true or d.visibility = :shared)
         order by d.id
         """)
