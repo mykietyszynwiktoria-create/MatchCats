@@ -92,3 +92,5 @@ Pair proposals now require an explicit recipient response. See [Pairing consent]
 Conversation unread counts persist per account. Bilingual 404/403/network/server views use native cat illustrations; see [Unread messages and errors](docs/UNREAD_AND_ERRORS.md).
 
 Inbox verification adds a private account status and single-use 24-hour links. See [Email verification](docs/EMAIL_VERIFICATION.md) for API permissions, SMTP requirements and testing limits.
+
+A stopped local database/application snapshot can be checked in isolation with [Local backup restore](docs/LOCAL_BACKUP_RESTORE.md). This is a development check; production backup and recovery policies remain required.
