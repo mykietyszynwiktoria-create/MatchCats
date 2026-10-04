@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.*;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.*;
 import pl.viksi.catsmatch.backend.account.AccountRepository;
 import java.util.*;
@@ -55,7 +56,7 @@ public class SecurityConfig {
                     "img-src 'self' data:; connect-src 'self'; object-src 'none'; " +
                     "base-uri 'self'; frame-ancestors 'none'; form-action 'self'"))
                 .referrerPolicy(r -> r.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
-                .permissionsPolicy(p -> p.policy("camera=(), microphone=(), geolocation=()")))
+                .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", "camera=(), microphone=(), geolocation=()")))
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req,res,ex) -> {
                     res.setStatus(401);res.setContentType("application/json");
@@ -69,3 +70,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
