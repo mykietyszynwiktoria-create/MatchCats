@@ -100,3 +100,6 @@ Documents now have an explicit owner-uploaded/review-requested/verified/rejected
 
 
 Installable app metadata and the static shell service worker are documented in [Installable app foundation](docs/INSTALLABLE_APP.md). Device checks are listed in [Device testing](docs/DEVICE_TESTING.md).
+
+
+For Windows development, [tools/Start-MatchCats.ps1](tools/Start-MatchCats.ps1) checks Docker and Java, starts the local PostgreSQL container, and launches either `bootRun` or the test/build task. It does not install software or delete data.
