@@ -23,6 +23,58 @@ class ChatConcurrencyTests {
     @Autowired ChatService chats;
     @Autowired MatchingService matches;
     @Autowired JdbcTemplate database;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired pl.viksi.catsmatch.backend.account.AccountRepository accountRepository;
+
+    @Test void deletingCandidateAccountWhileSelectingPairDoesNotDeadlock() throws Exception {
+        List<Integer> createdAccounts = new ArrayList<>();
+        ExecutorService worker = Executors.newSingleThreadExecutor();
+        try {
+            Authentication[] owners = new Authentication[2];
+            int[] catIds = new int[2];
+            String prefix = "deleterace" + UUID.randomUUID().toString().substring(0, 8);
+            for (int i = 0; i < 2; i++) {
+                String username = prefix + i;
+                createdAccounts.add(accounts.register(new AccountService.Registration(username,
+                    "StrongTestPassword!", username + "@example.test", "Test", "Breeder")).id());
+                owners[i] = UsernamePasswordAuthenticationToken.authenticated(username, null, List.of());
+                cats.saveBreeder(owners[i], new CatService.BreederInput("Blue Cats", "Warsaw", "Poland", ""));
+                catIds[i] = cats.create(owners[i], new CatService.CatInput("Luna", "Maine Coon",
+                    i == 0 ? Cat.Sex.FEMALE : Cat.Sex.MALE, Cat.Health.HEALTHY,
+                    LocalDate.of(2022, 1, 1), "Warsaw", "Poland", "", true)).id();
+            }
+            var transaction = new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+            Future<Integer> selection = transaction.execute(status -> {
+                accountRepository.lockAccounts(List.of(createdAccounts.get(1)));
+                Future<Integer> pending = worker.submit(() -> {
+                    try { matches.select(catIds[0], owners[0], new MatchingService.Selection(catIds[1])); return 200; }
+                    catch (pl.viksi.catsmatch.backend.common.ApiException error) { return error.status.value(); }
+                });
+                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+                boolean waiting = false;
+                while (System.nanoTime() < deadline) {
+                    database.execute("select pg_stat_clear_snapshot()");
+                    waiting = Boolean.TRUE.equals(database.queryForObject("""
+                        select exists(select 1 from pg_stat_activity
+                        where datname = current_database() and pid <> pg_backend_pid()
+                        and wait_event_type = 'Lock' and query like '%mc_accounts%')
+                        """, Boolean.class));
+                    if (waiting) break;
+                    try { Thread.sleep(20); }
+                    catch (InterruptedException error) { Thread.currentThread().interrupt(); throw new IllegalStateException(error); }
+                }
+                assertTrue(waiting, "Pair selection must be waiting on the candidate account lock");
+                accounts.delete(owners[1], new AccountService.DeleteAccount("StrongTestPassword!"));
+                return pending;
+            });
+            assertEquals(404, selection.get(20, TimeUnit.SECONDS));
+            assertEquals(0, matches.list(catIds[0], owners[0], 0, 20).total());
+        } finally {
+            worker.shutdownNow();
+            worker.awaitTermination(20, TimeUnit.SECONDS);
+            for (int id : createdAccounts) database.update("delete from mc_accounts where id = ?", id);
+        }
+    }
 
     @Test void simultaneousContactInOppositeDirectionsCreatesOnlyOneConversation() throws Exception {
         simultaneousSelection(false);

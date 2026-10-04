@@ -23,14 +23,26 @@ public class MatchingService {
     private final CatRepository repository;
     private final CatPairRepository pairs;
     private final ChatService chats;
+    private final pl.viksi.catsmatch.backend.account.AccountRepository accounts;
     private final pl.viksi.catsmatch.backend.safety.SafetyService safety;
 
-    public MatchingService(CatService cats, CatRepository repository, CatPairRepository pairs, ChatService chats, pl.viksi.catsmatch.backend.safety.SafetyService safety) {
+    public MatchingService(CatService cats, CatRepository repository, CatPairRepository pairs, ChatService chats, pl.viksi.catsmatch.backend.safety.SafetyService safety,
+        pl.viksi.catsmatch.backend.account.AccountRepository accounts) {
         this.cats = cats;
         this.repository = repository;
         this.pairs = pairs;
         this.chats = chats;
         this.safety = safety;
+        this.accounts = accounts;
+    }
+
+    private List<Cat> lockParticipants(List<Integer> catIds) {
+        // Account deletion locks the owner before cascading to cats. Use that
+        // same order here, before contact() reacquires the account locks.
+        // Read scalar IDs only, so cats are loaded after any deletion finishes.
+        var ownerIds = repository.ownerIds(catIds);
+        if (!ownerIds.isEmpty()) accounts.lockAccounts(ownerIds);
+        return repository.lockCats(catIds);
     }
 
     private void available(Cat cat) {
@@ -69,9 +81,7 @@ public class MatchingService {
 
     @Transactional
     public PairView select(int sourceId, Authentication auth, Selection input) {
-        // Lock both cats in ID order before loading them into this transaction.
-        // This also serializes opposite-direction requests for the same pair.
-        List<Cat> locked = repository.lockCats(List.of(sourceId, input.candidateId()));
+        List<Cat> locked = lockParticipants(List.of(sourceId, input.candidateId()));
         Cat source = locked.stream().filter(c -> c.id.equals(sourceId)).findFirst()
             .orElseThrow(() -> ApiException.missing("Cat"));
         if (!source.ownerId.equals(cats.userId(auth))) throw ApiException.forbidden();
@@ -113,7 +123,7 @@ public class MatchingService {
         int owner = cats.userId(auth);
         // Read only IDs before locking, avoiding a stale managed pair after waiting.
         var ids = pairs.catIds(id).orElseThrow(() -> ApiException.missing("Proposal"));
-        var locked = repository.lockCats(List.of(ids.getFirstCatId(), ids.getSecondCatId()));
+        var locked = lockParticipants(List.of(ids.getFirstCatId(), ids.getSecondCatId()));
         Cat first = locked.stream().filter(c -> c.id.equals(ids.getFirstCatId())).findFirst()
             .orElseThrow(() -> ApiException.missing("Cat"));
         Cat second = locked.stream().filter(c -> c.id.equals(ids.getSecondCatId())).findFirst()
