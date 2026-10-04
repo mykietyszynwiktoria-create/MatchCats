@@ -30,6 +30,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       INVALID_RESET_LINK:t('Link jest nieprawidłowy, wykorzystany lub wygasł. Poproś o nowy link.','This link is invalid, already used or expired. Request a new link.'),
       INVALID_VERIFICATION_LINK:t('Link potwierdzający jest nieprawidłowy, wykorzystany lub wygasł. Zaloguj się i wyślij nowy link w ustawieniach.','This verification link is invalid, already used or expired. Sign in and request a new link in Settings.'),
       EMAIL_UNAVAILABLE:t('Wysyłka e-maili nie jest jeszcze skonfigurowana lub jest chwilowo niedostępna. Spróbuj później.','Email delivery is not configured yet or is temporarily unavailable. Please try later.'),
+      PAYMENT_NOT_CONFIGURED:t('Płatności Premium nie są jeszcze uruchomione.','Premium payments are not configured yet.'),
       ACCOUNT_EXISTS:t('Login lub adres e-mail jest już zajęty.','Username or email is already registered.'),
       VALIDATION_FAILED:t('Sprawdź wymagane pola i ich poprawność.','Check the required fields and their values.'),
       INVALID_REQUEST:t('Dane nie spełniają wymagań. Sprawdź formularz.','The submitted data does not meet the requirements. Check the form.'),
