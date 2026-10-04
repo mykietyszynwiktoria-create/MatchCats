@@ -106,3 +106,6 @@ For Windows development, [tools/Start-MatchCats.ps1](tools/Start-MatchCats.ps1) 
 
 
 Native store packaging is planned in [Mobile wrapper plan](docs/MOBILE_WRAPPER_PLAN.md); no paid accounts or store submissions are created automatically.
+
+
+The external requirements for a store release are tracked in [Release readiness](docs/RELEASE_READINESS.md).
