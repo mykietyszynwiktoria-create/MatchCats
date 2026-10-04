@@ -211,6 +211,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-page')){if(el.dataset.pageType==='messages')chatPage=Number(el.dataset.page);else listPage=Number(el.dataset.page);render();}
     if(el.hasAttribute('data-refresh'))render();
+    if(el.hasAttribute('data-start-checkout'))try{el.disabled=true;await api('/billing/checkout',{method:'POST'});}catch(error){showError(error);}finally{el.disabled=false;}
     if(el.hasAttribute('data-clear-search')){searchFilters={};listPage=0;render();}
     try {
       if(el.dataset.blockOwner && confirm(t('Zablokować nowe wiadomości i propozycje par z tą osobą?','Block new messages and pair proposals with this person?'))){el.disabled=true;await api('/safety/blocks/'+el.dataset.blockOwner,{method:'PUT'});await render();}
