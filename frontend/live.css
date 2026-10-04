@@ -59,3 +59,11 @@ button:disabled { cursor:wait; opacity:.6; }
 .error-page h1 { line-height:1.2; }
 .error-page .live-tools { margin-top:24px; flex-wrap:wrap; }
 @media(max-width:640px) { .error-page { flex-direction:column; gap:12px; padding:25px; text-align:center; } .error-cat { width:225px; } .error-page .live-tools { justify-content:center; } .error-page .button { white-space:normal; } }
+
+.plans-page { max-width:960px; }
+.plans-page .cat-grid { align-items:stretch; }
+.plans-page .cat-grid > .panel { display:flex; flex-direction:column; min-height:230px; border:1px solid #c9def5; background:linear-gradient(145deg,#fff,#f2f8ff); }
+.plans-page .cat-grid h2 { color:#164f8c; }
+.plans-page .price { color:#155dcc; font-size:25px; font-weight:750; margin:8px 0 18px; }
+.plans-page ul { margin:0; padding-left:22px; line-height:1.8; }
+.plans-page .notice { margin-top:22px; }
