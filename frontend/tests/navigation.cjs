@@ -37,7 +37,10 @@ const fs=require('fs'),path=require('path'),http=require('http');
   await page.locator('.conversation-row').first().waitFor();
   await page.locator('[data-page-type="cats"][data-page="1"]').click();
   await page.locator('.conversation-row[href="#messages/21"]').waitFor();
-  await page.locator('.conversation-row[href="#messages/21"]').click();
+  await Promise.all([
+   page.waitForRequest(request=>new URL(request.url()).pathname==='/chats/21'),
+   page.locator('.conversation-row[href="#messages/21"]').click()
+  ]);
   await page.waitForURL('**#messages/21');
   await page.locator('#live-message-form[data-chat-id="21"]').waitFor();
   assert.equal(await page.locator('.conversation-row').count(),1,'Selecting a conversation must preserve the list page');
