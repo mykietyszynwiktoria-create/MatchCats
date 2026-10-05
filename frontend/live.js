@@ -149,7 +149,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       const action=item.readAt?'':'<button type="button" class="button secondary" data-notification-read="'+item.id+'">'+t('Oznacz jako przeczytane','Mark as read')+'</button>';
       return '<article class="panel notification-card'+status+'"><div class="notification-heading"><div><h2>'+esc(notificationTitle)+'</h2><p class="muted">'+esc(date)+'</p></div>'+badge+'</div><p>'+esc(notificationBody)+'</p>'+action+'</article>';
     }).join('');
-    return title(t('Powiadomienia','Notifications'),t('Ważne informacje dotyczące Twoich rozmów i konta.','Important updates about your conversations and account.'))+(cards||'<section class="panel">'+t('Nie masz jeszcze powiadomień.','You have no notifications yet.')+'</section>');
+    return title(t('Powiadomienia','Notifications'),t('Ważne informacje dotyczące Twoich rozmów i konta.','Important updates about your conversations and account.'))+'<div class="notifications-list" aria-live="polite">'+(cards||'<section class="panel">'+t('Nie masz jeszcze powiadomień.','You have no notifications yet.')+'</section>')+'</div>';
   }
   async function catList(route) {
     const own=route==='cats';const home=route==='dashboard';
