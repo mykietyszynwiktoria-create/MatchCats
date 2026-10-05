@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "Bilingual MatchCats breeder panel prototype",
-  "scripts": { "test": "node tests/panels.cjs && node tests/navigation.cjs && node tests/legal.cjs && node tests/plans-async.cjs && node tests/notifications.cjs && node tests/notifications-regression.cjs && node tests/installable.cjs && node tests/service-worker.cjs", "test:live": "node tests/live.cjs", "test:safety": "node tests/safety-runner.cjs" },
+  "scripts": { "test": "node tests/panels.cjs && node tests/navigation.cjs && node tests/legal.cjs && node tests/plans-async.cjs && node tests/notifications.cjs && node tests/notifications-regression.cjs && node tests/notifications-async.cjs && node tests/installable.cjs && node tests/service-worker.cjs", "test:live": "node tests/live.cjs", "test:safety": "node tests/safety-runner.cjs" },
   "devDependencies": { "playwright": "1.62.1" }
 }

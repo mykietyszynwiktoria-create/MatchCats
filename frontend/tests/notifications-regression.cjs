@@ -26,8 +26,8 @@ const fs=require('fs'),path=require('path'),http=require('http');
    else if(url.pathname==='/notifications'){
     assert.equal(url.searchParams.get('limit'),'50');
     body=empty?[]:[{id:1,kind:'MESSAGE',title:'New message',body:'You received a new MatchCats message.',createdAt:'2026-10-04T10:00:00Z',readAt:read?'2026-10-04T11:00:00Z':null},{id:2,kind:'OTHER',title:'<img src=x onerror=alert(1)>',body:'<script>throw Error("unsafe")</script>',createdAt:'2026-10-04T09:00:00Z',readAt:'2026-10-04T11:00:00Z'}];
-   }else if(url.pathname==='/notifications/unread-count')body={count:read?0:1};
-   }else if(url.pathname==='/notifications/1/read'){
+   }else if(url.pathname==='/notifications/unread-count'){await new Promise(resolve=>setTimeout(resolve,100));body={count:read?0:1};}
+   else if(url.pathname==='/notifications/1/read'){
     assert.equal(route.request().method(),'POST');assert.equal(route.request().headers()['x-csrf-token'],'test');
     if(failRead){await route.fulfill({status:500,json:{code:'HTTP_ERROR'}});return;}
     read=true;await route.fulfill({status:204});return;
@@ -57,6 +57,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
   assert.equal(await action.isEnabled(),true);assert.equal(await page.locator('.notification-unread').count(),1);
   failRead=false;await action.click();await page.waitForFunction(()=>!document.querySelector('[data-notification-read]'));
   assert.equal(await page.locator('.notification-unread').count(),0);
+  await page.waitForFunction(()=>document.querySelector('[data-notification-total]')?.textContent==='0');
   assert.equal(await page.locator('[data-notification-total]').textContent(),'0');
   empty=true;await page.reload();await page.getByText('You have no notifications yet.',{exact:true}).waitFor();
   assert.deepEqual(errors,[]);
