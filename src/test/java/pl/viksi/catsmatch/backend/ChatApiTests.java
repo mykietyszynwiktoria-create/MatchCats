@@ -91,6 +91,13 @@ class ChatApiTests {
         mvc.perform(get("/notifications").with(user("alice"))).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
 
+    @Test void notificationEndpointsRequireAuthenticationAndValidateLimit() throws Exception {
+        mvc.perform(get("/notifications/unread-count")).andExpect(status().isUnauthorized());
+        breeder("alice");
+        mvc.perform(get("/notifications?limit=0").with(user("alice"))).andExpect(status().isBadRequest());
+        mvc.perform(get("/notifications?limit=101").with(user("alice"))).andExpect(status().isBadRequest());
+    }
+
     @Test void readReceiptsRequireMembershipCsrfAndValidReceivedIds() throws Exception {
         breeder("alice");breeder("bob");breeder("eve");long chat=contact(cat("bob"),"alice");long message=send(chat,"alice");
         long otherChat=contact(cat("eve"),"alice");long otherMessage=send(otherChat,"alice");
