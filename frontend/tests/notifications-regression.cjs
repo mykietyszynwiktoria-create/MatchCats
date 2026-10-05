@@ -36,6 +36,8 @@ const fs=require('fs'),path=require('path'),http=require('http');
   });
   await page.goto('http://127.0.0.1:'+server.address().port+'/#notifications');
   await page.locator('.notification-card').first().waitFor();
+  await page.locator('[data-notification-total]').waitFor();
+  assert.equal(await page.locator('[data-notification-total]').textContent(),'1');
   for(const language of ['pl','en']){
    await page.locator('[data-language="'+language+'"]').click();
    const heading=language==='pl'?'Powiadomienia':'Notifications';
@@ -55,6 +57,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
   assert.equal(await action.isEnabled(),true);assert.equal(await page.locator('.notification-unread').count(),1);
   failRead=false;await action.click();await page.waitForFunction(()=>!document.querySelector('[data-notification-read]'));
   assert.equal(await page.locator('.notification-unread').count(),0);
+  assert.equal(await page.locator('[data-notification-total]').textContent(),'0');
   empty=true;await page.reload();await page.getByText('You have no notifications yet.',{exact:true}).waitFor();
   assert.deepEqual(errors,[]);
   console.log('PASS: notifications PL/EN, escaping, mobile layout, failed and successful read, empty state.');
