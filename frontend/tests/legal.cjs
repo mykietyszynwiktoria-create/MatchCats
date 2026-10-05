@@ -30,6 +30,17 @@ const fs=require('fs'),path=require('path'),http=require('http');
     else return route.continue();
     await route.fulfill({json:body});
    });
+   if(!signedIn)for(const language of ['pl','en'])for(const mode of ['login','register']){
+    await page.goto('http://127.0.0.1:'+server.address().port+'/#'+mode);
+    await page.locator('#'+mode+'-form').waitFor();
+    await page.locator('[data-language="'+language+'"]').click();
+    const link=page.locator('.auth-panel a[href="#plans"]');
+    assert.equal(await link.count(),1,'Authentication panel must have one plans link');
+    assert.equal(await link.textContent(),language==='pl'?'Plany':'Plans');
+    await link.click();
+    await page.locator('.plans-page h1').waitFor();
+    assert.equal(await page.locator('.plans-page h1').textContent(),language==='pl'?'Plany MatchCats':'MatchCats plans');
+   }
    for(const language of ['pl','en'])for(const kind of ['privacy','terms','plans']){
     const section=kind==='plans'?'.plans-page':'.legal-page';
     await page.goto('http://127.0.0.1:'+server.address().port+'/#'+kind);
