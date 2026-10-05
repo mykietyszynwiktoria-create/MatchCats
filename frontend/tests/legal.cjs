@@ -37,6 +37,8 @@ const fs=require('fs'),path=require('path'),http=require('http');
     const link=page.locator('.auth-panel a[href="#plans"]');
     assert.equal(await link.count(),1,'Authentication panel must have one plans link');
     assert.equal(await link.textContent(),language==='pl'?'Plany':'Plans');
+    assert.equal(await page.locator('.auth-panel a[href="#privacy"]').textContent(),language==='pl'?'Prywatność':'Privacy');
+    assert.equal(await page.locator('.auth-panel a[href="#terms"]').textContent(),language==='pl'?'Regulamin':'Terms');
     await link.click();
     await page.locator('.plans-page h1').waitFor();
     assert.equal(await page.locator('.plans-page h1').textContent(),language==='pl'?'Plany MatchCats':'MatchCats plans');
