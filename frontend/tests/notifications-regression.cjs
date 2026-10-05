@@ -68,6 +68,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
   countFails=true;await page.reload();await page.locator('.notification-card').first().waitFor();
   assert.equal(await page.locator('.notification-card').count(),2);
   empty=true;await page.reload();await page.getByText('You have no notifications yet.',{exact:true}).waitFor();
+  assert.equal(await page.locator('.notification-empty h2').textContent(),'No notifications yet');
   assert.deepEqual(errors,[]);
   console.log('PASS: notifications PL/EN, escaping, mobile layout, failed and successful read, empty state.');
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
