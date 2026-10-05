@@ -67,7 +67,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci --ignore-scripts
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Test demo and integrated interface
         env:
           DB_URL: jdbc:postgresql://localhost:5432/matchcats_test
