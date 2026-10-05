@@ -14,3 +14,5 @@ MatchCats now shows private in-app notifications for account events.
 ## Privacy and future work
 
 Notifications currently contain a generic message notice. A later iteration can add links to the related conversation, notification preferences, and retention rules after the product requirements are agreed.
+
+The unread-count query is supported by the `V19__notification_unread_index.sql` database index. Flyway applies it during the normal application startup migration.
