@@ -44,6 +44,18 @@ if ($ForRelease) {
   Write-Host ''
   Write-Host 'Release-only reminders' -ForegroundColor Cyan
   Write-Host '[INFO] Public HTTPS host, production database, backups and monitoring must be selected.'
+  foreach ($name in @('APP_CORS_ORIGINS','MAIL_FROM','SMTP_HOST','SMTP_PORT','SMTP_USER','SMTP_PASSWORD')) {
+    $ok = (Test-EnvValue $name) -and $ok
+  }
+  $mailEnabled = [Environment]::GetEnvironmentVariable('MAIL_ENABLED')
+  if ($mailEnabled -eq 'true') { Write-Host '[OK] MAIL_ENABLED=true' -ForegroundColor Green }
+  else { Write-Host '[MISSING] MAIL_ENABLED must be true for a release' -ForegroundColor Yellow; $ok = $false }
+  $cookieSecure = [Environment]::GetEnvironmentVariable('COOKIE_SECURE')
+  if ($cookieSecure -eq 'true') { Write-Host '[OK] COOKIE_SECURE=true' -ForegroundColor Green }
+  else { Write-Host '[MISSING] COOKIE_SECURE must be true for a release' -ForegroundColor Yellow; $ok = $false }
+  $baseUrl = [Environment]::GetEnvironmentVariable('PUBLIC_BASE_URL')
+  if ($baseUrl -match '^https://[^/].+') { Write-Host '[OK] PUBLIC_BASE_URL uses HTTPS' -ForegroundColor Green }
+  else { Write-Host '[MISSING] PUBLIC_BASE_URL must be an HTTPS URL for a release' -ForegroundColor Yellow; $ok = $false }
   Write-Host '[INFO] SMTP provider, store accounts, signing certificates and privacy/support pages must be configured.'
   Write-Host '[INFO] Premium checkout remains disabled until a payment provider and webhooks are tested.'
   Write-Host '[INFO] This script cannot verify external accounts or credentials.'
