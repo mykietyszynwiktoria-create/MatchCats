@@ -4,7 +4,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const main = document.querySelector('#main');
   let user = null, breeder = null, language = 'pl', revision = 0, flash = '', flashRoute = '';
   let searchFilters = {}, listPage = 0, chatPage = 0;
-  let unreadCount=0, unreadBusy=false, unreadAgain=false, notificationCount=0, notificationBusy=false;
+  let unreadCount=0, unreadBusy=false, unreadAgain=false, notificationCount=0, notificationBusy=false, notificationAgain=false;
   const errorPage=error=>MatchCatsErrors.page(error,{t,esc,button});
   let safetyCapabilities={moderator:false,moderationConfigured:false};
   try { language = localStorage.getItem('matchcats-language') === 'en' ? 'en' : 'pl'; } catch {}
@@ -195,10 +195,11 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   function unreadBadge(){return `<span class="unread-badge" data-unread-total ${unreadCount?'':'hidden'} aria-label="${t('Nieprzeczytane wiadomości: ','Unread messages: ')+unreadCount}">${unreadCount>99?'99+':unreadCount}</span>`;}
   function notificationBadge(){return '<span class="unread-badge" data-notification-total '+(notificationCount?'':'hidden')+' aria-label="'+t('Nieprzeczytane powiadomienia: ','Unread notifications: ')+notificationCount+'">'+(notificationCount>99?'99+':notificationCount)+'</span>';}
   async function refreshNotificationCount(){
-    if(!user||document.hidden||notificationBusy)return;
-    notificationBusy=true;
-    try{const summary=await api('/notifications/unread-count');notificationCount=Number(summary.count)||0;const badge=document.querySelector('[data-notification-total]');if(badge){badge.textContent=notificationCount>99?'99+':notificationCount;badge.hidden=notificationCount===0;badge.setAttribute('aria-label',t('Nieprzeczytane powiadomienia: ','Unread notifications: ')+notificationCount);}}
-    catch(error){if(error.status===401)showError(error);} finally{notificationBusy=false;}
+    if(!user||document.hidden)return;
+    if(notificationBusy){notificationAgain=true;return;}
+    const account=user;notificationBusy=true;
+    try{const summary=await api('/notifications/unread-count');if(user!==account)return;notificationCount=Number(summary.count)||0;const badge=document.querySelector('[data-notification-total]');if(badge){badge.textContent=notificationCount>99?'99+':notificationCount;badge.hidden=notificationCount===0;badge.setAttribute('aria-label',t('Nieprzeczytane powiadomienia: ','Unread notifications: ')+notificationCount);}}
+    catch(error){if(user===account&&error.status===401)showError(error);} finally{notificationBusy=false;if(notificationAgain){notificationAgain=false;refreshNotificationCount();}}
   }
   async function refreshUnread(){
     if(!user||document.hidden)return;
@@ -229,7 +230,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const el=e.target.closest('button');if(!el)return;
     if(el.dataset.language){ flash='';language=el.dataset.language;try{localStorage.setItem('matchcats-language',language);}catch{}render(); }
     if(el.id==='top-profile')location.hash='settings';
-    if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
+    if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;notificationCount=0;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-page')){if(el.dataset.pageType==='messages')chatPage=Number(el.dataset.page);else listPage=Number(el.dataset.page);render();}
     if(el.hasAttribute('data-refresh'))render();
     if(el.hasAttribute('data-notification-read'))try{el.disabled=true;await api('/notifications/'+el.dataset.notificationRead+'/read',{method:'POST'});await render();}catch(error){showError(error);el.disabled=false;}
@@ -289,13 +290,13 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
       else if(form.id==='request-email-form'){await api('/auth/email/request',{method:'POST',body:{language}});await render(t('Link wysłany. Sprawdź skrzynkę i folder spam.','Link sent. Check your inbox and spam folder.'));}
       else if(form.id==='verify-email-form'){await api('/auth/email/confirm',{method:'POST',body:{token:form.dataset.token}});if(user)user=await api('/users/me');await render(t('Adres konta, dla którego wysłano link, został potwierdzony.','The account email this link was sent for has been verified.'));}
       else if(form.id==='forgot-password-form'){await api('/auth/password/request',{method:'POST',body:{email:data.email,language}});await render(t('Jeśli konto istnieje, wysłaliśmy link. Sprawdź również folder spam.','If an account exists, a link has been sent. Check your spam folder too.'));}
-      else if(form.id==='reset-password-form'){await api('/auth/password/reset',{method:'POST',body:{token:form.dataset.token,password:data.password}});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render(t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'));}
+      else if(form.id==='reset-password-form'){await api('/auth/password/reset',{method:'POST',body:{token:form.dataset.token,password:data.password}});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;notificationCount=0;location.hash='login';await render(t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'));}
       else if(form.id==='login-form'){user=await api('/auth/login',{method:'POST',body:data});MatchCatsAPI.resetCSRF();await loadBreeder();await loadSafety();location.hash=breeder?'dashboard':'settings';await render();}
       else if(form.id==='breeder-form'){breeder=await api('/owners/me',{method:'PUT',body:data});await render();}
       else if(form.id==='account-form'){user=await api('/users/me',{method:'PUT',body:data});await render();}
       else if(form.id==='password-form' || form.id==='delete-account-form') {
         await api(form.id==='password-form'?'/users/me/password':'/users/me',{method:form.id==='password-form'?'POST':'DELETE',body:data});
-        MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';await render(form.id==='password-form'?t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'):t('Konto zostało usunięte.','Your account has been deleted.'));
+        MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;notificationCount=0;location.hash='login';await render(form.id==='password-form'?t('Hasło zmienione. Zaloguj się ponownie.','Password changed. Please sign in again.'):t('Konto zostało usunięte.','Your account has been deleted.'));
       }
       else if(form.id==='live-search'){searchFilters={breed:data.breed.trim(),sex:data.sex,city:data.city.trim(),available:data.available?'true':''};listPage=0;await render();}
       else if(form.id==='live-cat-form') {
