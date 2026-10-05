@@ -7,6 +7,7 @@ MatchCats now shows private in-app notifications for account events.
 - A new chat message creates a notification for the other breeder.
 - The authenticated user can load up to 100 notifications with `GET /notifications?limit=50`.
 - Unread totals are available with `GET /notifications/unread-count`.
+- One action can mark all current-account notifications read with `POST /notifications/read-all`.
 - A notification can be marked read with `POST /notifications/{id}/read`.
 - The frontend exposes a bilingual Notifications screen and keeps unread cards visually highlighted.
 - Notifications are scoped to the current account; one breeder cannot read another breeder's notifications.
