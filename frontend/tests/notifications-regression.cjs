@@ -42,6 +42,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
   await page.locator('.notification-card').first().waitFor();
   await page.locator('[data-notification-total]').waitFor();
   assert.equal(await page.locator('[data-notification-total]').textContent(),'1');
+  assert.match(await page.locator('[data-notification-total]').getAttribute('aria-label'),/Nieprzeczytane|Unread/);
   for(const language of ['pl','en']){
    await page.locator('[data-language="'+language+'"]').click();
    const heading=language==='pl'?'Powiadomienia':'Notifications';
