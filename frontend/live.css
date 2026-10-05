@@ -73,3 +73,16 @@ button:disabled { cursor:wait; opacity:.6; }
 .notification-heading h2 { margin:0 0 5px; }
 .notification-card.notification-unread { border-color:#86b9f4; box-shadow:0 4px 16px rgba(21,93,204,.10); }
 .notification-card .button { margin-top:8px; }
+
+/* Animated full-body brand kitten. */
+.sidebar .brand-cat { width:46px; height:54px; flex-shrink:0; overflow:visible; }
+.brand-cat-body { animation:brand-cat-bounce 2.4s ease-in-out infinite; transform-origin:48px 102px; }
+.brand-cat-tail { animation:brand-cat-tail 1.5s ease-in-out infinite alternate; transform-origin:68px 90px; }
+.brand-cat-paw { animation:brand-cat-wave 2.4s ease-in-out infinite; transform-origin:28px 73px; }
+.brand-cat-eyes { animation:brand-cat-blink 4.8s infinite; transform-origin:48px 44px; }
+@keyframes brand-cat-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px) rotate(-2deg); } }
+@keyframes brand-cat-tail { from { transform:rotate(-9deg); } to { transform:rotate(9deg); } }
+@keyframes brand-cat-wave { 0%,55%,100% { transform:rotate(0); } 15%,40% { transform:rotate(-17deg); } 27% { transform:rotate(12deg); } }
+@keyframes brand-cat-blink { 0%,43%,47%,100% { transform:scaleY(1); } 45% { transform:scaleY(.1); } }
+@media(max-width:640px) { .sidebar .brand-cat { width:36px; height:44px; } }
+@media(prefers-reduced-motion:reduce) { .brand-cat-body,.brand-cat-tail,.brand-cat-paw,.brand-cat-eyes { animation:none; } }
