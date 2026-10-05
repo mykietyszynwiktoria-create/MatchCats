@@ -234,6 +234,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     if(el.hasAttribute('data-logout'))try {el.disabled=true;await api('/auth/logout',{method:'POST'});MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;notificationCount=0;location.hash='login';await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-page')){if(el.dataset.pageType==='messages')chatPage=Number(el.dataset.page);else listPage=Number(el.dataset.page);render();}
     if(el.hasAttribute('data-refresh'))render();
+    if(el.hasAttribute('data-notifications-read-all'))try{el.disabled=true;await api('/notifications/read-all',{method:'POST'});await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-notification-read'))try{el.disabled=true;await api('/notifications/'+el.dataset.notificationRead+'/read',{method:'POST'});await render();}catch(error){showError(error);el.disabled=false;}
     if(el.hasAttribute('data-start-checkout'))try{el.disabled=true;await api('/billing/checkout',{method:'POST'});}catch(error){showError(error);}finally{el.disabled=false;}
     if(el.hasAttribute('data-clear-search')){searchFilters={};listPage=0;render();}

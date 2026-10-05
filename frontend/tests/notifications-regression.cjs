@@ -12,7 +12,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  let browser;
- let countFails=false;
+ let countFails=false,failAll=true;
  try{
   browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
   const page=await browser.newPage();const errors=[];let read=false,failRead=true,empty=false;
@@ -33,6 +33,8 @@ const fs=require('fs'),path=require('path'),http=require('http');
    }
    else if(url.pathname==='/notifications/read-all'){
     assert.equal(route.request().method(),'POST');
+    assert.equal(route.request().headers()['x-csrf-token'],'test');
+    if(failAll){await route.fulfill({status:500,json:{code:'HTTP_ERROR'}});return;}
     read=true;await route.fulfill({status:204});return;
    }
    else if(url.pathname==='/notifications/1/read'){
@@ -69,6 +71,13 @@ const fs=require('fs'),path=require('path'),http=require('http');
   assert.equal(await page.locator('.notification-unread').count(),0);
   await page.waitForFunction(()=>document.querySelector('[data-notification-total]')?.textContent==='0');
   assert.equal(await page.locator('[data-notification-total]').textContent(),'0');
+  read=false;await page.reload();await page.locator('[data-notifications-read-all]').waitFor();
+  const all=page.locator('[data-notifications-read-all]');
+  await all.click();await page.locator('.live-error').waitFor({timeout:4000});
+  assert.equal(await all.isEnabled(),true);assert.equal(await page.locator('.notification-unread').count(),1);
+  failAll=false;await all.click();await page.waitForFunction(()=>!document.querySelector('[data-notifications-read-all]'),null,{timeout:4000});
+  assert.equal(await page.locator('.notification-unread').count(),0);
+  await page.waitForFunction(()=>document.querySelector('[data-notification-total]')?.textContent==='0');
   countFails=true;await page.reload();await page.locator('.notification-card').first().waitFor();
   assert.equal(await page.locator('.notification-card').count(),2);
   empty=true;await page.reload();await page.getByText('You have no notifications yet.',{exact:true}).waitFor();
