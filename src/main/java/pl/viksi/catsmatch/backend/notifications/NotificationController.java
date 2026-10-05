@@ -13,6 +13,9 @@ public class NotificationController {
     List<NotificationService.NotificationView> list(Authentication auth, @RequestParam(defaultValue="50") int limit) { return service.list(auth,limit); }
     @GetMapping("/notifications/unread-count")
     NotificationService.UnreadCount unreadCount(Authentication auth) { return service.unreadCount(auth); }
+    @PostMapping("/notifications/read-all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void readAll(Authentication auth) { service.readAll(auth); }
     @PostMapping("/notifications/{id}/read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void read(@PathVariable long id, Authentication auth) { service.read(id,auth); }
