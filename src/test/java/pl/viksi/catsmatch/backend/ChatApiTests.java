@@ -76,11 +76,17 @@ class ChatApiTests {
     @Test void newMessagesCreatePrivateNotificationsThatCanBeRead() throws Exception {
         breeder("alice"); breeder("bob"); long chat=contact(cat("bob"),"alice");
         send(chat,"alice");
+        mvc.perform(get("/notifications/unread-count").with(user("bob")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1));
+        mvc.perform(get("/notifications/unread-count").with(user("alice")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(0));
         String notification=mvc.perform(get("/notifications").with(user("bob")))
             .andExpect(status().isOk()).andExpect(jsonPath("$[0].kind").value("MESSAGE"))
             .andExpect(jsonPath("$[0].readAt").value(org.hamcrest.Matchers.nullValue())).andReturn().getResponse().getContentAsString();
         long id=json.readTree(notification).get(0).get("id").asLong();
         mvc.perform(post("/notifications/"+id+"/read").with(user("bob")).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/notifications/unread-count").with(user("bob")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(0));
         mvc.perform(get("/notifications").with(user("bob"))).andExpect(status().isOk()).andExpect(jsonPath("$[0].readAt").exists());
         mvc.perform(get("/notifications").with(user("alice"))).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
