@@ -40,6 +40,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
   });
   await page.goto('http://127.0.0.1:'+server.address().port+'/#notifications');
   await page.locator('.notification-card').first().waitFor();
+  assert.equal(await page.locator('.notifications-list').getAttribute('aria-live'),'polite');
   await page.locator('[data-notification-total]').waitFor();
   assert.equal(await page.locator('[data-notification-total]').textContent(),'1');
   assert.match(await page.locator('[data-notification-total]').getAttribute('aria-label'),/Nieprzeczytane|Unread/);
