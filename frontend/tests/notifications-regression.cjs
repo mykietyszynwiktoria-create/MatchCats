@@ -31,6 +31,10 @@ const fs=require('fs'),path=require('path'),http=require('http');
     if(countFails){await route.fulfill({status:503,json:{code:'UNAVAILABLE'}});return;}
     await new Promise(resolve=>setTimeout(resolve,100));body={count:read?0:1};
    }
+   else if(url.pathname==='/notifications/read-all'){
+    assert.equal(route.request().method(),'POST');
+    read=true;await route.fulfill({status:204});return;
+   }
    else if(url.pathname==='/notifications/1/read'){
     assert.equal(route.request().method(),'POST');assert.equal(route.request().headers()['x-csrf-token'],'test');
     if(failRead){await route.fulfill({status:500,json:{code:'HTTP_ERROR'}});return;}
