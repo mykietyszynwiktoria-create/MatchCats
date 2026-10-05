@@ -25,6 +25,10 @@ public class NotificationService {
         Long count=jdbc.queryForObject("SELECT COUNT(*) FROM mc_notifications WHERE account_id=? AND read_at IS NULL", Long.class, accountId);
         return new UnreadCount(count==null?0:count);
     }
+    public int readAll(Authentication auth) {
+        Integer accountId=accounts.current(auth).id;
+        return jdbc.update("UPDATE mc_notifications SET read_at=COALESCE(read_at, CURRENT_TIMESTAMP) WHERE account_id=? AND read_at IS NULL", accountId);
+    }
     public void read(long id, Authentication auth) {
         Integer accountId=accounts.current(auth).id;
         int updated=jdbc.update("UPDATE mc_notifications SET read_at=COALESCE(read_at, CURRENT_TIMESTAMP) WHERE id=? AND account_id=?",id,accountId);
