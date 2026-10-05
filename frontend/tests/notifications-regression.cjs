@@ -12,6 +12,7 @@ const fs=require('fs'),path=require('path'),http=require('http');
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  let browser;
+ let countFails=false;
  try{
   browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
   const page=await browser.newPage();const errors=[];let read=false,failRead=true,empty=false;
@@ -59,6 +60,8 @@ const fs=require('fs'),path=require('path'),http=require('http');
   assert.equal(await page.locator('.notification-unread').count(),0);
   await page.waitForFunction(()=>document.querySelector('[data-notification-total]')?.textContent==='0');
   assert.equal(await page.locator('[data-notification-total]').textContent(),'0');
+  countFails=true;await page.reload();await page.locator('.notification-card').first().waitFor();
+  assert.equal(await page.locator('.notification-card').count(),2);
   empty=true;await page.reload();await page.getByText('You have no notifications yet.',{exact:true}).waitFor();
   assert.deepEqual(errors,[]);
   console.log('PASS: notifications PL/EN, escaping, mobile layout, failed and successful read, empty state.');
