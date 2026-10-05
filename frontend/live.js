@@ -4,7 +4,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   const main = document.querySelector('#main');
   let user = null, breeder = null, language = 'pl', revision = 0, flash = '', flashRoute = '';
   let searchFilters = {}, listPage = 0, chatPage = 0;
-  let unreadCount=0, unreadBusy=false, unreadAgain=false;
+  let unreadCount=0, unreadBusy=false, unreadAgain=false, notificationCount=0, notificationBusy=false;
   const errorPage=error=>MatchCatsErrors.page(error,{t,esc,button});
   let safetyCapabilities={moderator:false,moderationConfigured:false};
   try { language = localStorage.getItem('matchcats-language') === 'en' ? 'en' : 'pl'; } catch {}
@@ -45,7 +45,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
   }
   function showError(error,target=main) {
     if(!target.isConnected)target=main;
-    if(error.status===401 && user) { MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;location.hash='login';render(t('Sesja wygasła. Zaloguj się ponownie.','Your session expired. Sign in again.'));return; }
+    if(error.status===401 && user) { MatchCatsAPI.resetCSRF();user=null;breeder=null;unreadCount=0;notificationCount=0;location.hash='login';render(t('Sesja wygasła. Zaloguj się ponownie.','Your session expired. Sign in again.'));return; }
     let box=target.querySelector('.live-error');
     if(!box) {box=document.createElement('div');box.className='live-error';box.setAttribute('role','alert');target.prepend(box);}
     box.hidden=false;box.textContent=typeof error==='string'?error:message(error);
@@ -67,7 +67,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     const current=nav.find(x=>x[0]===route)?.[1]||t('Profil','Profile');
     document.querySelector('#breadcrumb').textContent=current;
     document.title=`MatchCats · ${user?current:t('Twoje konto','Your account')}`;
-    document.querySelector('#navigation').innerHTML=user?nav.map(([key,label])=>`<a href="#${key}" class="nav-item ${key===route?'active':''}" ${key===route?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${icon(key)}</span><span class="nav-text">${label}</span>${key==='messages'?unreadBadge():''}</a>`).join(''):'';
+    document.querySelector('#navigation').innerHTML=user?nav.map(([key,label])=>`<a href="#${key}" class="nav-item ${key===route?'active':''}" ${key===route?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${icon(key)}</span><span class="nav-text">${label}</span>${key==='messages'?unreadBadge():key==='notifications'?notificationBadge():''}</a>`).join(''):'';
     document.querySelector('#top-profile').textContent=user?.firstName?.slice(0,1)||'•';
     document.querySelector('#top-profile').setAttribute('aria-label',t('Ustawienia konta','Account settings'));
   }
@@ -89,7 +89,7 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     main.innerHTML=`<div class="live-loading" role="status">${t('Wczytywanie…','Loading…')}</div>`;
     try {
       const result=await view(route,id);
-      if(ownRevision===revision) {main.innerHTML=(flash?`<p class="live-success" role="status">${esc(flash)}</p>`:'')+result;activateForms();await acknowledgeMessages();await refreshUnread();}
+      if(ownRevision===revision) {main.innerHTML=(flash?`<p class="live-success" role="status">${esc(flash)}</p>`:'')+result;activateForms();await acknowledgeMessages();await refreshUnread();await refreshNotificationCount();}
     } catch(error) { if(ownRevision===revision){if([403,404].includes(error.status)||error.status>=500||error.code==='NETWORK'){main.innerHTML=errorPage(error);}else {main.innerHTML=button(t('Spróbuj ponownie','Try again'),route+(id?'/'+id:''));showError(error);}} }
   }
   function activateForms(){main.querySelectorAll('form').forEach(form=>form.noValidate=true);}
@@ -193,6 +193,13 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     return title(t('Rozmowy','Conversations'),t('Wiadomości zapisują się na serwerze. Odśwież rozmowę, aby zobaczyć nowe odpowiedzi.','Messages are stored on the server. Refresh the conversation to see new replies.'))+`<section class="chat-layout"><div class="chat-list">${list.items.map(c=>`<a class="conversation-row ${c.id===chat?.id?'selected':''}" href="#messages/${c.id}"><span class="initials">${esc(names.get(c.id)?.slice(0,1))}</span><strong>${esc(names.get(c.id))}</strong>${c.unreadMessages?`<span class="unread-badge" data-chat-unread="${c.id}" aria-label="${t('Nieprzeczytane wiadomości: ','Unread messages: ')+c.unreadMessages}">${c.unreadMessages}</span>`:''}</a>`).join('')||t('Brak rozmów. Otwórz profil kota, aby skontaktować się z hodowcą.','No conversations. Open a cat profile to contact a breeder.')}</div><div class="chat-pane">${chat?`<div class="chat-header"><strong>${esc(names.get(chat.id)||t('Rozmowa','Conversation'))}</strong><button type="button" class="button secondary" data-refresh>${t('Odśwież','Refresh')}</button></div><div class="messages" role="log">${history.items.map(m=>`<div data-message-id="${m.id}" ${m.authorId!==user.id?'data-received':''} class="bubble ${m.authorId===user.id?'mine':''}">${esc(m.text)}<small>${esc(new Date(m.createdAt).toLocaleString(language==='pl'?'pl-PL':'en-GB'))}</small>${m.authorId!==user.id?button(t('Zgłoś','Report'),'report/MESSAGE:'+m.id,'subtle'):''}</div>`).join('')||t('Przywitaj się z hodowcą.','Say hello to the breeder.')}</div>${chat.contactBlocked?`<p class="notice">${t('Kontakt jest zablokowany lub konto jest niedostępne. Historia pozostaje dostępna.','Contact is blocked or the account is unavailable. History remains accessible.')}</p>`:''}<div class="live-tools">${blockButton(other,contact.blockedByYou)}</div><form id="live-message-form" class="chat-compose" data-chat-id="${chat.id}"><input ${chat.contactBlocked?'disabled':''} name="text" required maxlength="4000" aria-label="${t('Treść wiadomości','Message text')}" placeholder="${t('Napisz wiadomość…','Write a message…')}"><button ${chat.contactBlocked?'disabled':''} class="button primary" type="submit">${t('Wyślij','Send')}</button></form>`:''}</div></section>`+(history?pager(history,'messages'):'')+pager(list,'cats');
   }
   function unreadBadge(){return `<span class="unread-badge" data-unread-total ${unreadCount?'':'hidden'} aria-label="${t('Nieprzeczytane wiadomości: ','Unread messages: ')+unreadCount}">${unreadCount>99?'99+':unreadCount}</span>`;}
+  function notificationBadge(){return '<span class="unread-badge" data-notification-total '+(notificationCount?'':'hidden')+' aria-label="'+t('Nieprzeczytane powiadomienia: ','Unread notifications: ')+notificationCount+'">'+(notificationCount>99?'99+':notificationCount)+'</span>';}
+  async function refreshNotificationCount(){
+    if(!user||document.hidden||notificationBusy)return;
+    notificationBusy=true;
+    try{const summary=await api('/notifications/unread-count');notificationCount=Number(summary.count)||0;const badge=document.querySelector('[data-notification-total]');if(badge){badge.textContent=notificationCount>99?'99+':notificationCount;badge.hidden=notificationCount===0;badge.setAttribute('aria-label',t('Nieprzeczytane powiadomienia: ','Unread notifications: ')+notificationCount);}}
+    catch(error){if(error.status===401)showError(error);} finally{notificationBusy=false;}
+  }
   async function refreshUnread(){
     if(!user||document.hidden)return;
     if(unreadBusy){unreadAgain=true;return;}
@@ -313,8 +320,8 @@ if (new URLSearchParams(location.search).get('demo') !== '1') (() => {
     try {user=await api('/users/me');await loadBreeder();await loadSafety();await render();}
     catch(error){user=null;await render();if(error.status!==401)showError(error);}
   }
-  setInterval(refreshUnread,30000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){acknowledgeMessages().then(refreshUnread);}});
-  window.addEventListener('online',refreshUnread);
+  setInterval(refreshUnread,30000);setInterval(refreshNotificationCount,30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){acknowledgeMessages().then(()=>Promise.all([refreshUnread(),refreshNotificationCount()]));}});
+  window.addEventListener('online',()=>{refreshUnread();refreshNotificationCount();});
   start();
 })();
