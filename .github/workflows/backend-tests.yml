@@ -83,6 +83,7 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:8084/health
+          curl --fail --silent http://127.0.0.1:8084/health/ready
           npm --prefix frontend test
           npm --prefix frontend run test:live
           npm --prefix frontend run test:safety
@@ -98,6 +99,7 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:8085/health
+          curl --fail --silent http://127.0.0.1:8085/health/ready
           curl --fail --silent http://127.0.0.1:8085/ | grep -q 'MatchCats'
       - name: Publish test reports
         if: always()
