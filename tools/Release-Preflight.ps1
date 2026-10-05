@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Continue'
 function Test-Tool([string]$Name, [string]$InstallHint) {
   $command = Get-Command $Name -ErrorAction SilentlyContinue
   if ($command) {
-    Write-Host "[OK] $Name: $($command.Source)" -ForegroundColor Green
+    Write-Host "[OK] ${Name}: $($command.Source)" -ForegroundColor Green
     return $true
   }
   Write-Host "[MISSING] $Name - $InstallHint" -ForegroundColor Yellow
