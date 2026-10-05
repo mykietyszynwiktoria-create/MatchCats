@@ -27,7 +27,10 @@ const fs=require('fs'),path=require('path'),http=require('http');
    else if(url.pathname==='/notifications'){
     assert.equal(url.searchParams.get('limit'),'50');
     body=empty?[]:[{id:1,kind:'MESSAGE',title:'New message',body:'You received a new MatchCats message.',createdAt:'2026-10-04T10:00:00Z',readAt:read?'2026-10-04T11:00:00Z':null},{id:2,kind:'OTHER',title:'<img src=x onerror=alert(1)>',body:'<script>throw Error("unsafe")</script>',createdAt:'2026-10-04T09:00:00Z',readAt:'2026-10-04T11:00:00Z'}];
-   }else if(url.pathname==='/notifications/unread-count'){await new Promise(resolve=>setTimeout(resolve,100));body={count:read?0:1};}
+   }else if(url.pathname==='/notifications/unread-count'){
+    if(countFails){await route.fulfill({status:503,json:{code:'UNAVAILABLE'}});return;}
+    await new Promise(resolve=>setTimeout(resolve,100));body={count:read?0:1};
+   }
    else if(url.pathname==='/notifications/1/read'){
     assert.equal(route.request().method(),'POST');assert.equal(route.request().headers()['x-csrf-token'],'test');
     if(failRead){await route.fulfill({status:500,json:{code:'HTTP_ERROR'}});return;}
