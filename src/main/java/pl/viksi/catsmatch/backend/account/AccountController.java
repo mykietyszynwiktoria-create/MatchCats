@@ -40,8 +40,10 @@ public class AccountController {
         new CsrfAuthenticationStrategy(new HttpSessionCsrfTokenRepository()).onAuthentication(auth, request, response);
         var context = SecurityContextHolder.createEmptyContext(); context.setAuthentication(auth);
         SecurityContextHolder.setContext(context); contexts.saveContext(context, request, response);
-        request.getSession().setAttribute(pl.viksi.catsmatch.backend.security.SessionVersionFilter.ATTRIBUTE,service.current(auth).securityVersion);
-        return service.view(service.current(auth));
+        var account=service.current(auth);
+        request.getSession().setAttribute(pl.viksi.catsmatch.backend.security.SessionVersionFilter.ATTRIBUTE,account.securityVersion);
+        request.getSession().setAttribute(pl.viksi.catsmatch.backend.security.SessionVersionFilter.ACCOUNT_ID_ATTRIBUTE,account.id);
+        return service.view(account);
     }
     @GetMapping({"/users/me", "/auth/me"})
     AccountService.UserView me(Authentication auth) { return service.view(service.current(auth)); }

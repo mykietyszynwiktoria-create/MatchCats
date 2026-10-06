@@ -9,6 +9,7 @@ import java.io.IOException;
 
 public class SessionVersionFilter extends OncePerRequestFilter {
     public static final String ATTRIBUTE="matchcats.securityVersion";
+    public static final String ACCOUNT_ID_ATTRIBUTE="matchcats.accountId";
     private final AccountRepository accounts;
     public SessionVersionFilter(AccountRepository accounts) { this.accounts=accounts; }
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {
@@ -16,7 +17,8 @@ public class SessionVersionFilter extends OncePerRequestFilter {
         var session=request.getSession(false);
         if(auth!=null && auth.isAuthenticated() && session!=null && session.getAttribute(ATTRIBUTE) instanceof Long version) {
             var account=accounts.findByUsername(auth.getName());
-            if(account.isEmpty() || account.get().suspended || account.get().securityVersion!=version) {
+            if(account.isEmpty() || !account.get().id.equals(session.getAttribute(ACCOUNT_ID_ATTRIBUTE))
+                    || account.get().suspended || account.get().securityVersion!=version) {
                 session.invalidate();SecurityContextHolder.clearContext();
             }
         }

@@ -81,6 +81,24 @@ class AccountApiTests {
         mvc.perform(delete("/users/me").session(latest).with(csrf()).contentType("application/json").content("{\"currentPassword\":\"NewStrongPassword!\"}"))
             .andExpect(status().isNoContent());assertFalse(accounts.existsByUsername("securitytest"));assertTrue(latest.isInvalid());
     }
+    @Test void deletedAccountSessionCannotAccessNewAccountWithReusedUsername() throws Exception {
+        mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("reused"))).andExpect(status().isCreated());
+        int originalId=accounts.findByUsername("reused").orElseThrow().id;
+        String credentials="{\"username\":\"reused\",\"password\":\"StrongTestPassword!\"}";
+        var deleting=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        var unused=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        mvc.perform(delete("/users/me").session(deleting).with(csrf()).contentType("application/json")
+            .content("{\"currentPassword\":\"StrongTestPassword!\"}")).andExpect(status().isNoContent());
+        assertTrue(deleting.isInvalid());assertFalse(unused.isInvalid());
+        mvc.perform(post("/users").with(csrf()).contentType("application/json").content(body("reused"))).andExpect(status().isCreated());
+        assertNotEquals(originalId,accounts.findByUsername("reused").orElseThrow().id);
+        mvc.perform(get("/users/me").session(unused)).andExpect(status().isUnauthorized());assertTrue(unused.isInvalid());
+        var fresh=(MockHttpSession)mvc.perform(post("/auth/login").with(csrf()).contentType("application/json").content(credentials))
+            .andExpect(status().isOk()).andReturn().getRequest().getSession();
+        mvc.perform(get("/users/me").session(fresh)).andExpect(status().isOk());
+    }
     String body(String username) throws Exception {
         return json.writeValueAsString(Map.of("username",username,"password","StrongTestPassword!","email",username+"@example.test","firstName","Test","surname","Breeder"));
     }
