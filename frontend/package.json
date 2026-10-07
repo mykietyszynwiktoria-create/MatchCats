@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "description": "Bilingual MatchCats breeder panel prototype",
-  "scripts": { "test": "node tests/panels.cjs && node tests/navigation.cjs && node tests/legal.cjs && node tests/plans-async.cjs && node tests/notifications.cjs && node tests/notifications-regression.cjs && node tests/notifications-async.cjs && node tests/installable.cjs && node tests/service-worker.cjs", "test:live": "node tests/live.cjs", "test:safety": "node tests/safety-runner.cjs" },
-  "devDependencies": { "playwright": "1.62.1" }
+  "scripts": {
+    "test": "node tests/panels.cjs && node tests/navigation.cjs && node tests/legal.cjs && node tests/plans-async.cjs && node tests/notifications.cjs && node tests/notifications-regression.cjs && node tests/notifications-async.cjs && node tests/installable.cjs && node tests/service-worker.cjs",
+    "test:live": "node tests/live.cjs",
+    "test:safety": "node tests/safety-runner.cjs",
+    "mobile:prepare": "powershell -NoProfile -ExecutionPolicy Bypass -File ..\\tools\\Prepare-CapacitorWeb.ps1",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "playwright": "1.62.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  }
 }
