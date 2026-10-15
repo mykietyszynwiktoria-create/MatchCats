@@ -1,3 +1,5 @@
+#main { overflow-wrap:anywhere; }
+.detail-layout > * { min-width:0; }
 .auth-layout { display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:start; max-width:1000px; margin:25px auto; }
 .auth-intro { padding:35px 20px; }
 .auth-intro h1 { font-size:42px; line-height:1.12; letter-spacing:-1px; }

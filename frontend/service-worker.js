@@ -1,4 +1,4 @@
-const CACHE_NAME='matchcats-shell-v3';
+const CACHE_NAME='matchcats-shell-v4';
 const APP_SHELL=['./','./index.html','./styles.css','./sky-garden.css','./live.css','./i18n.js','./api.js','./safety.js','./error-pages.js','./legal.js','./plans.js','./live.js','./app.js','./assets/sky-hero.jpg','./assets/sky-portraits.jpg'];
 const SHELL_PATHS=new Set(APP_SHELL.map(path=>new URL(path,location.origin+'/').pathname));
 const isStaticAsset=pathname=>SHELL_PATHS.has(pathname);
