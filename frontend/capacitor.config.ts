@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.matchcats.app',
   appName: 'MatchCats',
   webDir: 'capacitor-web',
-  bundledWebRuntime: false,
   server: {
     cleartext: false,
   },
