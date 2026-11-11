@@ -1,4 +1,11 @@
 'use strict';
+document.querySelector('.skip')?.addEventListener('click', event => {
+  const target = document.querySelector('#main');
+  if (!target) return;
+  event.preventDefault();
+  target.focus({preventScroll:true});
+  target.scrollIntoView({block:'start'});
+});
 if (new URLSearchParams(location.search).get('demo') === '1') {
 'use strict';
 const STORAGE = 'matchcats-panels-v1';
