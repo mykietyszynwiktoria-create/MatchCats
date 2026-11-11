@@ -12,6 +12,9 @@ if (-not (Test-Path '.env')) {
 }
 
 docker compose up -d postgres
+if ($LASTEXITCODE -ne 0) {
+  throw "PostgreSQL did not start (docker compose exit code $LASTEXITCODE). Resolve the Docker error before starting MatchCats."
+}
 Write-Host 'PostgreSQL is starting on localhost:5432.'
 Write-Host 'Set DB_URL, DB_USER and DB_PASSWORD in this PowerShell session to match .env.'
 if ($Build) {
