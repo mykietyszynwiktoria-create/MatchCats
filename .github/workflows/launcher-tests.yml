@@ -1,0 +1,26 @@
+name: Windows launcher tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/Start-MatchCats.ps1'
+      - 'tools/tests/Start-MatchCats.Tests.ps1'
+      - '.github/workflows/launcher-tests.yml'
+  pull_request:
+    paths:
+      - 'tools/Start-MatchCats.ps1'
+      - 'tools/tests/Start-MatchCats.Tests.ps1'
+      - '.github/workflows/launcher-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check launcher startup failure and Gradle modes
+        shell: pwsh
+        run: ./tools/tests/Start-MatchCats.Tests.ps1
