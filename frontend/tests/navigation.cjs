@@ -46,7 +46,29 @@ const fs=require('fs'),path=require('path'),http=require('http');
   assert.equal(await page.locator('.conversation-row').count(),1,'Selecting a conversation must preserve the list page');
   assert.equal(await page.locator('.conversation-row.selected').getAttribute('href'),'#messages/21');
   assert.equal(await page.locator('.chat-header strong').textContent(),'Test cattery');
+  await page.goto('http://127.0.0.1:'+server.address().port+'/#settings');
+  await page.locator('#account-form').waitFor();
+  async function checkSkipLink(targetPage, selector, language) {
+   await targetPage.locator('[data-language="'+language+'"]').click();
+   const input=targetPage.locator(selector);
+   await input.fill('Unsaved '+language);
+   const url=targetPage.url();
+   await targetPage.locator('.skip').focus();
+   await targetPage.keyboard.press('Enter');
+   await targetPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   assert.equal(targetPage.url(),url,'Skipping navigation must preserve the route');
+   assert.equal(await input.inputValue(),'Unsaved '+language,'Skipping navigation must preserve form drafts');
+   assert.equal(await targetPage.evaluate(()=>document.activeElement===document.querySelector('#main')),true,'The main content must receive focus');
+   assert.equal(await targetPage.locator('[data-error-kind="404"]').count(),0);
+  }
+  for(const language of ['pl','en'])await checkSkipLink(page,'#account-form [name="firstName"]',language);
+  const demo=await browser.newPage();
+  demo.on('pageerror',error=>errors.push(error.message));
+  await demo.goto('http://127.0.0.1:'+server.address().port+'/?demo=1#settings');
+  await demo.locator('#profile-form').waitFor();
+  for(const language of ['pl','en'])await checkSkipLink(demo,'#profile-form [name="name"]',language);
+  await demo.close();
   assert.deepEqual(errors,[]);
-  console.log('PASS: conversation selection preserves the second list page and its breeder label.');
+  console.log('PASS: conversation selection preserves the list page; keyboard skip links preserve route/drafts and focus main in live/demo PL/EN.');
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});
